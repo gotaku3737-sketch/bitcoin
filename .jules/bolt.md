@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing capacity reservations for std::vector when iterating known-size collections
+**Learning:** Found an inefficient std::vector usage in `DescriptorScriptPubKeyMan::SignTransaction`. The `pubkeys` vector was reserved with `input.hd_keypaths.size() + 2`, but then it iterated over `input.m_tap_bip32_paths` adding two elements per item. This leads to unnecessary reallocations during signing.
+**Action:** When working on collection generation that appends items from multiple loops, always ensure the `.reserve()` call accurately accounts for ALL loops to avoid reallocations. This pattern could be present in other parts of the codebase.
