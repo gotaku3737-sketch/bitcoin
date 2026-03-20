@@ -76,8 +76,7 @@ class BIP66Test(BitcoinTestFramework):
 
         self.log.info("Mining %d blocks", DERSIG_HEIGHT - 2)
         blocks = self.generate(self.miniwallet, DERSIG_HEIGHT - 2)
-        # ⚡ Bolt: Use batched RPC for `getblock` to reduce network round-trips when fetching multiple blocks.
-        # This reduces N synchronous requests to 1 batched request, speeding up test setup.
+        # ⚡ Bolt: Batch getblock RPC calls to prevent N+1 queries during test execution
         self.coinbase_txids = [res['result']['tx'][0] for res in self.nodes[0].batch([self.nodes[0].getblock.get_request(b) for b in blocks])]
 
         self.log.info("Test that a transaction with non-DER signature can still appear in a block")

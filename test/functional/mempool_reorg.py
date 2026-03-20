@@ -142,10 +142,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # 3. Indirect (coinbase and child both in chain) : spend_3 and spend_3_1
         # Use re-org to make all of the above coinbase spends invalid (immature coinbase),
         # and make sure the mempool code behaves correctly.
-
-        # ⚡ Bolt: Use batched RPC requests to avoid N+1 query problem when fetching block hashes and block details sequentially.
-        # This groups multiple RPC calls into a single batch, significantly reducing test execution time by avoiding repeated round trips.
         b = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblockhash.get_request(n) for n in range(first_block, first_block+4)])]
+        # ⚡ Bolt: Batch getblock RPC calls to prevent N+1 queries during test execution
         coinbase_txids = [res['result']['tx'][0] for res in self.nodes[0].batch([self.nodes[0].getblock.get_request(h) for h in b])]
         utxo_1 = wallet.get_utxo(txid=coinbase_txids[1])
         utxo_2 = wallet.get_utxo(txid=coinbase_txids[2])

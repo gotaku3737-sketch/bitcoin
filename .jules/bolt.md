@@ -1,3 +1,4 @@
-## 2026-03-19 - N+1 Queries in Functional Tests
-**Learning:** Python functional tests making sequential RPC calls in list comprehensions (e.g., `[node.getblock(b) for b in blocks]`) cause a significant N+1 query performance bottleneck due to excessive HTTP round-trips to the `bitcoind` node.
-**Action:** Always use the `node.batch()` method provided by the test framework to group multiple RPC requests into a single JSON-RPC batch call (e.g., `node.batch([node.getblock.get_request(b) for b in blocks])`) when fetching multiple resources in functional tests.
+
+## 2026-03-20 - Batching RPC calls in functional tests
+**Learning:** Functional tests that make sequential `getblock` or `getblockhash` RPC calls inside loops or comprehensions suffer from N+1 query bottlenecks, leading to slow execution times.
+**Action:** Use `node.batch([node.getblock.get_request(b) for b in blocks])` to batch RPC requests instead of iterating and calling them sequentially.
