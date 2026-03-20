@@ -1340,7 +1340,7 @@ std::optional<PSBTError> DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTran
         } else {
             // Maybe there are pubkeys listed that we can sign for
             std::vector<CPubKey> pubkeys;
-            pubkeys.reserve(input.hd_keypaths.size() + 2);
+            pubkeys.reserve(input.hd_keypaths.size() + 2 + (input.m_tap_bip32_paths.size() * 2));
 
             // ECDSA Pubkeys
             for (const auto& [pk, _] : input.hd_keypaths) {
