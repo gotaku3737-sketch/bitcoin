@@ -103,7 +103,7 @@ GenerateAuthCookieResult GenerateAuthCookie(const std::optional<fs::perms>& cook
 {
     const size_t COOKIE_SIZE = 32;
     unsigned char rand_pwd[COOKIE_SIZE];
-    GetRandBytes(rand_pwd);
+    GetStrongRandBytes(rand_pwd);
     const std::string rand_pwd_hex{HexStr(rand_pwd)};
 
     /** the umask determines what permissions are used to create this file -
