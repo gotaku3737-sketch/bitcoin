@@ -65,13 +65,11 @@ class GetblockstatsTest(BitcoinTestFramework):
         self.expected_stats = self.get_stats()
 
         blocks = []
-        tip = self.nodes[0].getbestblockhash()
-        blockhash = None
-        height = 0
-        while tip != blockhash:
-            blockhash = self.nodes[0].getblockhash(height)
-            blocks.append(self.nodes[0].getblock(blockhash, 0))
-            height += 1
+
+        # Batch RPC call for getblockhash
+        hashes = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblockhash.get_request(h) for h in range(self.nodes[0].getblockcount() + 1)])]
+        # Batch RPC call for getblock
+        blocks = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblock.get_request(h, 0) for h in hashes])]
 
         to_dump = {
             'blocks': blocks,
