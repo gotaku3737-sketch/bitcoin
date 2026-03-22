@@ -281,7 +281,7 @@ class InitTest(BitcoinTestFramework):
         else:
             self.start_node(node.index)
 
-        current_height = node.getblock(node.getbestblockhash())['height']
+        current_height = node.getblockcount()
 
         with ThreadPoolExecutor(max_workers=1) as ex:
             # Call waitforblockheight with wait timeout longer than RPC timeout,
