@@ -88,7 +88,7 @@ class WalletMiniscriptDecayingMultisigDescriptorPSBTTest(BitcoinTestFramework):
         sent = 0
         for locktime in [0] + self.locktimes:
             self.log.info(f"At block height >= {locktime} this multisig is {self.M}-of-{self.N}")
-            current_height = self.node.getblock(self.node.getbestblockhash())['height']
+            current_height = self.node.getblockcount()
 
             # in this test each signer signs the same psbt "in series" one after the other.
             # Another option is for each signer to sign the original psbt, and then combine
