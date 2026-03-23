@@ -214,7 +214,7 @@ class AssumeValidTest(BitcoinTestFramework):
         # nodes[4]
         self.log.info("Send a block not in the assumevalid header chain to node4.")
         genesis_hash = self.nodes[4].getbestblockhash()
-        genesis_time = self.nodes[4].getblock(genesis_hash)['time']
+        genesis_time = self.nodes[4].getblockheader(genesis_hash)['time']
         alt1 = create_block(int(genesis_hash, 16), create_coinbase(1), genesis_time + 2)
         alt1.solve()
         p2p4 = self.nodes[4].add_p2p_connection(BaseNode())

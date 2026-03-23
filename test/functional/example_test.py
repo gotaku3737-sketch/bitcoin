@@ -168,7 +168,7 @@ class ExampleTest(BitcoinTestFramework):
 
         self.log.info("Create some blocks")
         self.tip = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time'] + 1
+        self.block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time'] + 1
 
         height = self.nodes[0].getblockcount()
 
