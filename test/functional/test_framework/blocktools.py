@@ -125,7 +125,8 @@ def create_empty_fork(node, fork_length=FORK_LENGTH):
     '''
     tip = int(node.getbestblockhash(), 16)
     height = node.getblockcount()
-    block_time = node.getblock(node.getbestblockhash())['time'] + 1
+    # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
+    block_time = node.getblockheader(node.getbestblockhash())['time'] + 1
 
     blocks = []
     for _ in range(fork_length):

@@ -281,7 +281,8 @@ class SendHeadersTest(BitcoinTestFramework):
                 # this time announce own block via headers
                 inv_node.clear_block_announcements()
                 height = self.nodes[0].getblockcount()
-                last_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
+                # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
+                last_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
                 block_time = last_time + 1
                 new_block = create_block(tip, create_coinbase(height + 1), block_time)
                 new_block.solve()
@@ -384,7 +385,8 @@ class SendHeadersTest(BitcoinTestFramework):
 
             block_time += 9
 
-            fork_point = self.nodes[0].getblock("%064x" % new_block_hashes[0])["previousblockhash"]
+            # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
+            fork_point = self.nodes[0].getblockheader("%064x" % new_block_hashes[0])["previousblockhash"]
             fork_point = int(fork_point, 16)
 
             # Use getblocks/getdata
@@ -432,7 +434,8 @@ class SendHeadersTest(BitcoinTestFramework):
         self.log.info("Part 4: Testing direct fetch behavior...")
         tip = self.mine_blocks(1)
         height = self.nodes[0].getblockcount() + 1
-        last_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
+        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
+        last_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
         block_time = last_time + 1
 
         # Create 2 blocks.  Send the blocks, then send the headers.
