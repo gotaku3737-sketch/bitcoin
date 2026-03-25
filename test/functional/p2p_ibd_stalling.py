@@ -56,7 +56,7 @@ class P2PIBDStallingTest(BitcoinTestFramework):
         tip = int(node.getbestblockhash(), 16)
         blocks = []
         height = 1
-        block_time = node.getblock(node.getbestblockhash())['time'] + 1
+        block_time = node.getblockheader(node.getbestblockhash())['time'] + 1
         self.log.info("Prepare blocks without sending them to the node")
         block_dict = {}
         for _ in range(NUM_BLOCKS):

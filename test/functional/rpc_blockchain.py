@@ -750,7 +750,7 @@ class BlockchainTest(BitcoinTestFramework):
 
         self.log.info("Test getblock when only header is known")
         current_height = node.getblockcount()
-        block_time = node.getblock(node.getbestblockhash())['time'] + 1
+        block_time = node.getblockheader(node.getbestblockhash())['time'] + 1
         block = create_block(int(blockhash, 16), create_coinbase(current_height + 1, nValue=100), block_time)
         block.solve()
         node.submitheader(block.serialize().hex())

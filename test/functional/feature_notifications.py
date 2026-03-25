@@ -170,7 +170,7 @@ class NotificationsTest(BitcoinTestFramework):
         # create a bunch of invalid blocks
         tip = self.nodes[0].getbestblockhash()
         height = self.nodes[0].getblockcount() + 1
-        block_time = self.nodes[0].getblock(tip)['time'] + 1
+        block_time = self.nodes[0].getblockheader(tip)['time'] + 1
 
         invalid_blocks = []
         for _ in range(7):  # invalid chain must be longer than 6 blocks to trigger warning
