@@ -139,4 +139,30 @@ BOOST_AUTO_TEST_CASE(rename)
     fs::remove(path2);
 }
 
+BOOST_AUTO_TEST_CASE(truncate_file)
+{
+    const fs::path tmpfolder{m_args.GetDataDirBase()};
+    const fs::path path{tmpfolder / "truncate_test.dat"};
+
+    {
+        std::ofstream file{path.std_path()};
+        file << "1234567890";
+    }
+
+    FILE* file = fsbridge::fopen(path, "r+");
+    BOOST_REQUIRE(file);
+
+    BOOST_CHECK(TruncateFile(file, 5));
+    BOOST_CHECK_EQUAL(fs::file_size(path), 5U);
+
+    BOOST_CHECK(TruncateFile(file, 15));
+    BOOST_CHECK_EQUAL(fs::file_size(path), 15U);
+
+    BOOST_CHECK(TruncateFile(file, 0));
+    BOOST_CHECK_EQUAL(fs::file_size(path), 0U);
+
+    std::fclose(file);
+    fs::remove(path);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
