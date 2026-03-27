@@ -139,4 +139,32 @@ BOOST_AUTO_TEST_CASE(rename)
     fs::remove(path2);
 }
 
+BOOST_AUTO_TEST_CASE(filecommit)
+{
+    const fs::path tmpfolder{m_args.GetDataDirBase()};
+    const fs::path path{tmpfolder / "test_filecommit"};
+
+    // Test a newly created file.
+    FILE* file = fsbridge::fopen(path, "w");
+    BOOST_REQUIRE(file != nullptr);
+    BOOST_CHECK(FileCommit(file));
+    fclose(file);
+
+    // Test an existing file opened for append.
+    file = fsbridge::fopen(path, "a");
+    BOOST_REQUIRE(file != nullptr);
+    const char* content = "test data";
+    BOOST_CHECK_EQUAL(fwrite(content, 1, strlen(content), file), strlen(content));
+    BOOST_CHECK(FileCommit(file));
+    fclose(file);
+
+    // Test an existing file opened for reading.
+    file = fsbridge::fopen(path, "r");
+    BOOST_REQUIRE(file != nullptr);
+    BOOST_CHECK(FileCommit(file));
+    fclose(file);
+
+    fs::remove(path);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
