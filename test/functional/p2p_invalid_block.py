@@ -43,7 +43,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         node = self.nodes[0]  # convenience reference to the node
         peer = node.add_p2p_connection(P2PDataStore())
 
-        best_block = node.getblock(node.getbestblockhash())
+        best_block = node.getblockheader(node.getbestblockhash())
         tip = int(node.getbestblockhash(), 16)
         height = best_block["height"] + 1
         block_time = best_block["time"] + 1
@@ -59,7 +59,7 @@ class InvalidBlockRequestTest(BitcoinTestFramework):
         self.log.info("Mature the block.")
         self.generatetoaddress(node, 100, node.get_deterministic_priv_key().address)
 
-        best_block = node.getblock(node.getbestblockhash())
+        best_block = node.getblockheader(node.getbestblockhash())
         tip = int(node.getbestblockhash(), 16)
         height = best_block["height"] + 1
         block_time = best_block["time"] + 1
