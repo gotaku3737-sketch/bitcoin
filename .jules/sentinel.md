@@ -7,3 +7,8 @@
 **Vulnerability:** The random blinding seed passed to the `secp256k1` context in `ECC_Start` used `GetRandBytes()` instead of `GetStrongRandBytes()`.
 **Learning:** Using `GetRandBytes()` instead of `GetStrongRandBytes()` for cryptographically secure random values fails to provide OS-level entropy, potentially exposing blinding scalar multiplications to side-channel attacks.
 **Prevention:** Always use `GetStrongRandBytes()` when generating cryptographically secure random values (such as authentication cookies or keys) to ensure OS-level entropy.
+
+## 2024-05-18 - Missing OS-level entropy for network and proxy nonces
+**Vulnerability:** Weak randomness used for generating PCP mapping nonces (`mapport.cpp`) and proxy credential prefixes (`netbase.cpp`).
+**Learning:** `GetRandBytes()` only provides fast seeding and does not guarantee strong OS-level entropy. Using it for protocol nonces or proxy isolation credentials can lead to predictability, potentially allowing attackers to interfere with mappings or link proxy circuits.
+**Prevention:** Always use `GetStrongRandBytes()` when generating tokens, nonces, or credentials that require unpredictability for security or isolation purposes.
