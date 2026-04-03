@@ -586,6 +586,11 @@ void HTTPRequest::WriteReply(int nStatus, std::span<const std::byte> reply)
     if (m_interrupt) {
         WriteHeader("Connection", "close");
     }
+    // Add global security headers
+    WriteHeader("X-Content-Type-Options", "nosniff");
+    WriteHeader("X-Frame-Options", "DENY");
+    WriteHeader("Content-Security-Policy", "default-src 'none'");
+
     // Send event to main http thread to send reply message
     struct evbuffer* evb = evhttp_request_get_output_buffer(req);
     assert(evb);
