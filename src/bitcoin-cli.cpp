@@ -31,6 +31,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <tuple>
 
@@ -567,21 +568,22 @@ public:
 
         // Generate report header.
         const std::string services{DetailsRequested() ? strprintf(" - services %s", FormatServices(networkinfo["localservicesnames"])) : ""};
-        std::string result{strprintf("%s client %s%s - server %i%s%s\n\n", CLIENT_NAME, FormatFullVersion(), ChainToString(), networkinfo["protocolversion"].getInt<int>(), networkinfo["subversion"].get_str(), services)};
+        std::ostringstream result;
+        tfm::format(result, "%s client %s%s - server %i%s%s\n\n", CLIENT_NAME, FormatFullVersion(), ChainToString(), networkinfo["protocolversion"].getInt<int>(), networkinfo["subversion"].get_str(), services);
 
         // Report detailed peer connections list sorted by direction and minimum ping time.
         if (DetailsRequested() && !m_peers.empty()) {
             std::sort(m_peers.begin(), m_peers.end());
-            result += strprintf("<->   type   net %*s  v  mping   ping send recv  txn  blk  hb %*s%*s%*s ",
+            tfm::format(result, "<->   type   net %*s  v  mping   ping send recv  txn  blk  hb %*s%*s%*s ",
                                 m_max_services_length, "serv",
                                 m_max_addr_processed_length, "addrp",
                                 m_max_addr_rate_limited_length, "addrl",
                                 m_max_age_length, "age");
-            if (m_is_asmap_on) result += " asmap ";
-            result += strprintf("%*s %-*s%s\n", m_max_id_length, "id", IsAddressSelected() ? m_max_addr_length : 0, IsAddressSelected() ? "address" : "", IsVersionSelected() ? "version" : "");
+            if (m_is_asmap_on) result << " asmap ";
+            tfm::format(result, "%*s %-*s%s\n", m_max_id_length, "id", IsAddressSelected() ? m_max_addr_length : 0, IsAddressSelected() ? "address" : "", IsVersionSelected() ? "version" : "");
             for (const Peer& peer : m_peers) {
                 std::string version{ToString(peer.version) + peer.sub_version};
-                result += strprintf(
+                tfm::format(result,
                     "%3s %6s %5s %*s %2s%7s%7s%5s%5s%5s%5s  %2s %*s%*s%*s%*i %*s %-*s%s\n",
                     peer.is_outbound ? "out" : "in",
                     ConnectionTypeForNetinfo(peer.conn_type),
@@ -610,63 +612,63 @@ public:
                     IsAddressSelected() ? peer.addr : "",
                     IsVersionSelected() && version != "0" ? version : "");
             }
-            result += strprintf("                %*s         ms     ms  sec  sec  min  min                %*s\n\n", m_max_services_length, "", m_max_age_length, "min");
+            tfm::format(result, "                %*s         ms     ms  sec  sec  min  min                %*s\n\n", m_max_services_length, "", m_max_age_length, "min");
         }
 
         // Report peer connection totals by type.
-        result += "     ";
+        result << "     ";
         std::vector<int8_t> reachable_networks;
         for (const UniValue& network : networkinfo["networks"].getValues()) {
             if (network["reachable"].get_bool()) {
                 const std::string& network_name{network["name"].get_str()};
                 const int8_t network_id{NetworkStringToId(network_name)};
                 if (network_id == UNKNOWN_NETWORK) continue;
-                result += strprintf("%8s", network_name); // column header
+                tfm::format(result, "%8s", network_name); // column header
                 reachable_networks.push_back(network_id);
             }
         };
 
         for (const size_t network_id : UNREACHABLE_NETWORK_IDS) {
             if (m_counts.at(2).at(network_id) == 0) continue;
-            result += strprintf("%8s", NETWORK_SHORT_NAMES.at(network_id)); // column header
+            tfm::format(result, "%8s", NETWORK_SHORT_NAMES.at(network_id)); // column header
             reachable_networks.push_back(network_id);
         }
 
-        result += "   total   block";
-        if (m_manual_peers_count) result += "  manual";
+        result << "   total   block";
+        if (m_manual_peers_count) result << "  manual";
 
         const std::array rows{"in", "out", "total"};
         for (size_t i = 0; i < rows.size(); ++i) {
-            result += strprintf("\n%-5s", rows[i]); // row header
+            tfm::format(result, "\n%-5s", rows[i]); // row header
             for (int8_t n : reachable_networks) {
-                result += strprintf("%8i", m_counts.at(i).at(n)); // network peers count
+                tfm::format(result, "%8i", m_counts.at(i).at(n)); // network peers count
             }
-            result += strprintf("   %5i", m_counts.at(i).at(NETWORKS.size())); // total peers count
+            tfm::format(result, "   %5i", m_counts.at(i).at(NETWORKS.size())); // total peers count
             if (i == 1) { // the outbound row has two extra columns for block relay and manual peer counts
-                result += strprintf("   %5i", m_block_relay_peers_count);
-                if (m_manual_peers_count) result += strprintf("   %5i", m_manual_peers_count);
+                tfm::format(result, "   %5i", m_block_relay_peers_count);
+                if (m_manual_peers_count) tfm::format(result, "   %5i", m_manual_peers_count);
             }
         }
 
         // Report local services, addresses, ports, and scores.
         if (!DetailsRequested()) {
-            result += strprintf("\n\nLocal services: %s", ServicesList(networkinfo["localservicesnames"]));
+            tfm::format(result, "\n\nLocal services: %s", ServicesList(networkinfo["localservicesnames"]));
         }
-        result += "\n\nLocal addresses";
+        result << "\n\nLocal addresses";
         const std::vector<UniValue>& local_addrs{networkinfo["localaddresses"].getValues()};
         if (local_addrs.empty()) {
-            result += ": n/a\n";
+            result << ": n/a\n";
         } else {
             size_t max_addr_size{0};
             for (const UniValue& addr : local_addrs) {
                 max_addr_size = std::max(addr["address"].get_str().length() + 1, max_addr_size);
             }
             for (const UniValue& addr : local_addrs) {
-                result += strprintf("\n%-*s    port %6i    score %6i", max_addr_size, addr["address"].get_str(), addr["port"].getInt<int>(), addr["score"].getInt<int>());
+                tfm::format(result, "\n%-*s    port %6i    score %6i", max_addr_size, addr["address"].get_str(), addr["port"].getInt<int>(), addr["score"].getInt<int>());
             }
         }
 
-        return JSONRPCReplyObj(UniValue{result}, NullUniValue, /*id=*/1, JSONRPCVersion::V2);
+        return JSONRPCReplyObj(UniValue{result.str()}, NullUniValue, /*id=*/1, JSONRPCVersion::V2);
     }
 
     const std::string m_help_doc{
@@ -1095,9 +1097,10 @@ static void ParseGetInfoResult(UniValue& result)
         CYAN = "\x1B[36m";
     }
 
-    std::string result_string = strprintf("%sChain: %s%s\n", BLUE, result["chain"].getValStr(), RESET);
-    result_string += strprintf("Blocks: %s\n", result["blocks"].getValStr());
-    result_string += strprintf("Headers: %s\n", result["headers"].getValStr());
+    std::ostringstream result_string;
+    tfm::format(result_string, "%sChain: %s%s\n", BLUE, result["chain"].getValStr(), RESET);
+    tfm::format(result_string, "Blocks: %s\n", result["blocks"].getValStr());
+    tfm::format(result_string, "Headers: %s\n", result["headers"].getValStr());
 
     const double ibd_progress{result["verificationprogress"].get_real()};
     std::string ibd_progress_bar;
@@ -1108,18 +1111,18 @@ static void ParseGetInfoResult(UniValue& result)
       ibd_progress_bar += " ";
     }
 
-    result_string += strprintf("Verification progress: %s%.4f%%\n", ibd_progress_bar, ibd_progress * 100);
-    result_string += strprintf("Difficulty: %s\n\n", result["difficulty"].getValStr());
+    tfm::format(result_string, "Verification progress: %s%.4f%%\n", ibd_progress_bar, ibd_progress * 100);
+    tfm::format(result_string, "Difficulty: %s\n\n", result["difficulty"].getValStr());
 
-    result_string += strprintf(
+    tfm::format(result_string,
         "%sNetwork: in %s, out %s, total %s%s\n",
         GREEN,
         result["connections"]["in"].getValStr(),
         result["connections"]["out"].getValStr(),
         result["connections"]["total"].getValStr(),
         RESET);
-    result_string += strprintf("Version: %s\n", result["version"].getValStr());
-    result_string += strprintf("Time offset (s): %s\n", result["timeoffset"].getValStr());
+    tfm::format(result_string, "Version: %s\n", result["version"].getValStr());
+    tfm::format(result_string, "Time offset (s): %s\n", result["timeoffset"].getValStr());
 
     // proxies
     std::map<std::string, std::vector<std::string>> proxy_networks;
@@ -1139,25 +1142,25 @@ static void ParseGetInfoResult(UniValue& result)
     for (const std::string& proxy : ordered_proxies) {
         formatted_proxies.emplace_back(strprintf("%s (%s)", proxy, Join(proxy_networks.find(proxy)->second, ", ")));
     }
-    result_string += strprintf("Proxies: %s\n", formatted_proxies.empty() ? "n/a" : Join(formatted_proxies, ", "));
+    tfm::format(result_string, "Proxies: %s\n", formatted_proxies.empty() ? "n/a" : Join(formatted_proxies, ", "));
 
-    result_string += strprintf("Min tx relay fee rate (%s/kvB): %s\n\n", CURRENCY_UNIT, result["relayfee"].getValStr());
+    tfm::format(result_string, "Min tx relay fee rate (%s/kvB): %s\n\n", CURRENCY_UNIT, result["relayfee"].getValStr());
 
     if (!result["has_wallet"].isNull()) {
         const std::string walletname = result["walletname"].getValStr();
-        result_string += strprintf("%sWallet: %s%s\n", MAGENTA, walletname.empty() ? "\"\"" : walletname, RESET);
+        tfm::format(result_string, "%sWallet: %s%s\n", MAGENTA, walletname.empty() ? "\"\"" : walletname, RESET);
 
-        result_string += strprintf("Keypool size: %s\n", result["keypoolsize"].getValStr());
+        tfm::format(result_string, "Keypool size: %s\n", result["keypoolsize"].getValStr());
         if (!result["unlocked_until"].isNull()) {
-            result_string += strprintf("Unlocked until: %s\n", result["unlocked_until"].getValStr());
+            tfm::format(result_string, "Unlocked until: %s\n", result["unlocked_until"].getValStr());
         }
     }
     if (!result["balance"].isNull()) {
-        result_string += strprintf("%sBalance:%s %s\n\n", CYAN, RESET, result["balance"].getValStr());
+        tfm::format(result_string, "%sBalance:%s %s\n\n", CYAN, RESET, result["balance"].getValStr());
     }
 
     if (!result["balances"].isNull()) {
-        result_string += strprintf("%sBalances%s\n", CYAN, RESET);
+        tfm::format(result_string, "%sBalances%s\n", CYAN, RESET);
 
         size_t max_balance_length{10};
 
@@ -1166,18 +1169,18 @@ static void ParseGetInfoResult(UniValue& result)
         }
 
         for (const std::string& wallet : result["balances"].getKeys()) {
-            result_string += strprintf("%*s %s\n",
+            tfm::format(result_string, "%*s %s\n",
                                        max_balance_length,
                                        result["balances"][wallet].getValStr(),
                                        wallet.empty() ? "\"\"" : wallet);
         }
-        result_string += "\n";
+        result_string << "\n";
     }
 
     const std::string warnings{result["warnings"].getValStr()};
-    result_string += strprintf("%sWarnings:%s %s", YELLOW, RESET, warnings.empty() ? "(none)" : warnings);
+    tfm::format(result_string, "%sWarnings:%s %s", YELLOW, RESET, warnings.empty() ? "(none)" : warnings);
 
-    result.setStr(result_string);
+    result.setStr(result_string.str());
 }
 
 /**
