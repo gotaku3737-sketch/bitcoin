@@ -27,7 +27,7 @@ std::unique_ptr<CWallet> CreateSyncedWallet(interfaces::Chain& chain, CChain& cc
     {
         LOCK(wallet->cs_wallet);
         wallet->SetWalletFlag(WALLET_FLAG_DESCRIPTORS);
-        wallet->SetupDescriptorScriptPubKeyMans();
+        wallet->SetupDescriptorScriptPubKeyMans(/*account=*/0);
 
         FlatSigningProvider provider;
         std::string error;
@@ -47,11 +47,11 @@ std::unique_ptr<CWallet> CreateSyncedWallet(interfaces::Chain& chain, CChain& cc
     return wallet;
 }
 
-std::shared_ptr<CWallet> TestCreateWallet(std::unique_ptr<WalletDatabase> database, WalletContext& context, uint64_t create_flags)
+std::shared_ptr<CWallet> TestCreateWallet(std::unique_ptr<WalletDatabase> database, WalletContext& context, uint64_t create_flags, int account)
 {
     bilingual_str _error;
     std::vector<bilingual_str> _warnings;
-    auto wallet = CWallet::CreateNew(context, "", std::move(database), create_flags, _error, _warnings);
+    auto wallet = CWallet::CreateNew(context, "", std::move(database), create_flags, _error, _warnings, account);
     NotifyWalletLoaded(context, wallet);
     if (context.chain) {
         wallet->postInitProcess();
@@ -59,7 +59,7 @@ std::shared_ptr<CWallet> TestCreateWallet(std::unique_ptr<WalletDatabase> databa
     return wallet;
 }
 
-std::shared_ptr<CWallet> TestCreateWallet(WalletContext& context)
+std::shared_ptr<CWallet> TestCreateWallet(WalletContext& context, int account)
 {
     DatabaseOptions options;
     options.require_create = true;
@@ -68,7 +68,7 @@ std::shared_ptr<CWallet> TestCreateWallet(WalletContext& context)
     bilingual_str error;
     std::vector<bilingual_str> warnings;
     auto database = MakeWalletDatabase("", options, status, error);
-    return TestCreateWallet(std::move(database), context, options.create_flags);
+    return TestCreateWallet(std::move(database), context, options.create_flags, account);
 }
 
 
