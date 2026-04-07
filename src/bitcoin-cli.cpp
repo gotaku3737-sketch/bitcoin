@@ -1096,9 +1096,10 @@ static void ParseGetInfoResult(UniValue& result)
         CYAN = "\x1B[36m";
     }
 
-    std::string result_string = strprintf("%sChain: %s%s\n", BLUE, result["chain"].getValStr(), RESET);
-    result_string += strprintf("Blocks: %s\n", result["blocks"].getValStr());
-    result_string += strprintf("Headers: %s\n", result["headers"].getValStr());
+    std::ostringstream result_string;
+    tfm::format(result_string, "%sChain: %s%s\n", BLUE, result["chain"].getValStr(), RESET);
+    tfm::format(result_string, "Blocks: %s\n", result["blocks"].getValStr());
+    tfm::format(result_string, "Headers: %s\n", result["headers"].getValStr());
 
     const double ibd_progress{result["verificationprogress"].get_real()};
     std::string ibd_progress_bar;
@@ -1109,18 +1110,18 @@ static void ParseGetInfoResult(UniValue& result)
       ibd_progress_bar += " ";
     }
 
-    result_string += strprintf("Verification progress: %s%.4f%%\n", ibd_progress_bar, ibd_progress * 100);
-    result_string += strprintf("Difficulty: %s\n\n", result["difficulty"].getValStr());
+    tfm::format(result_string, "Verification progress: %s%.4f%%\n", ibd_progress_bar, ibd_progress * 100);
+    tfm::format(result_string, "Difficulty: %s\n\n", result["difficulty"].getValStr());
 
-    result_string += strprintf(
+    tfm::format(result_string,
         "%sNetwork: in %s, out %s, total %s%s\n",
         GREEN,
         result["connections"]["in"].getValStr(),
         result["connections"]["out"].getValStr(),
         result["connections"]["total"].getValStr(),
         RESET);
-    result_string += strprintf("Version: %s\n", result["version"].getValStr());
-    result_string += strprintf("Time offset (s): %s\n", result["timeoffset"].getValStr());
+    tfm::format(result_string, "Version: %s\n", result["version"].getValStr());
+    tfm::format(result_string, "Time offset (s): %s\n", result["timeoffset"].getValStr());
 
     // proxies
     std::map<std::string, std::vector<std::string>> proxy_networks;
@@ -1140,25 +1141,25 @@ static void ParseGetInfoResult(UniValue& result)
     for (const std::string& proxy : ordered_proxies) {
         formatted_proxies.emplace_back(strprintf("%s (%s)", proxy, Join(proxy_networks.find(proxy)->second, ", ")));
     }
-    result_string += strprintf("Proxies: %s\n", formatted_proxies.empty() ? "n/a" : Join(formatted_proxies, ", "));
+    tfm::format(result_string, "Proxies: %s\n", formatted_proxies.empty() ? "n/a" : Join(formatted_proxies, ", "));
 
-    result_string += strprintf("Min tx relay fee rate (%s/kvB): %s\n\n", CURRENCY_UNIT, result["relayfee"].getValStr());
+    tfm::format(result_string, "Min tx relay fee rate (%s/kvB): %s\n\n", CURRENCY_UNIT, result["relayfee"].getValStr());
 
     if (!result["has_wallet"].isNull()) {
         const std::string walletname = result["walletname"].getValStr();
-        result_string += strprintf("%sWallet: %s%s\n", MAGENTA, walletname.empty() ? "\"\"" : walletname, RESET);
+        tfm::format(result_string, "%sWallet: %s%s\n", MAGENTA, walletname.empty() ? "\"\"" : walletname, RESET);
 
-        result_string += strprintf("Keypool size: %s\n", result["keypoolsize"].getValStr());
+        tfm::format(result_string, "Keypool size: %s\n", result["keypoolsize"].getValStr());
         if (!result["unlocked_until"].isNull()) {
-            result_string += strprintf("Unlocked until: %s\n", result["unlocked_until"].getValStr());
+            tfm::format(result_string, "Unlocked until: %s\n", result["unlocked_until"].getValStr());
         }
     }
     if (!result["balance"].isNull()) {
-        result_string += strprintf("%sBalance:%s %s\n\n", CYAN, RESET, result["balance"].getValStr());
+        tfm::format(result_string, "%sBalance:%s %s\n\n", CYAN, RESET, result["balance"].getValStr());
     }
 
     if (!result["balances"].isNull()) {
-        result_string += strprintf("%sBalances%s\n", CYAN, RESET);
+        tfm::format(result_string, "%sBalances%s\n", CYAN, RESET);
 
         size_t max_balance_length{10};
 
@@ -1167,18 +1168,18 @@ static void ParseGetInfoResult(UniValue& result)
         }
 
         for (const std::string& wallet : result["balances"].getKeys()) {
-            result_string += strprintf("%*s %s\n",
+            tfm::format(result_string, "%*s %s\n",
                                        max_balance_length,
                                        result["balances"][wallet].getValStr(),
                                        wallet.empty() ? "\"\"" : wallet);
         }
-        result_string += "\n";
+        tfm::format(result_string, "\n");
     }
 
     const std::string warnings{result["warnings"].getValStr()};
-    result_string += strprintf("%sWarnings:%s %s", YELLOW, RESET, warnings.empty() ? "(none)" : warnings);
+    tfm::format(result_string, "%sWarnings:%s %s", YELLOW, RESET, warnings.empty() ? "(none)" : warnings);
 
-    result.setStr(result_string);
+    result.setStr(result_string.str());
 }
 
 /**
