@@ -12,3 +12,7 @@
 **Vulnerability:** Missing HTTP security headers (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy).
 **Learning:** The HTTP RPC server was vulnerable to clickjacking, MIME-sniffing, and potentially XSS. These headers must be set globally on all responses.
 **Prevention:** Always set global security headers for all responses in the core HTTP handling logic (`HTTPRequest::WriteReply`).
+## 2023-10-24 - Handle InitData failures for PartiallyDownloadedBlock correctly
+**Vulnerability:** Ignored initialization failures for partially downloaded blocks in P2P net processing logic.
+**Learning:** Returning without logging or acting upon `READ_STATUS_INVALID` when handling invalid compact blocks allowed peers to spam malformed protocol messages silently without consequence (DoS vector).
+**Prevention:** Always penalize explicitly invalid peer data using `Misbehaving(peer, ...)` instead of `// TODO: don't ignore failures`.
