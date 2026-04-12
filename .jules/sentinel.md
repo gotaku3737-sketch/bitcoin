@@ -12,3 +12,7 @@
 **Vulnerability:** Missing HTTP security headers (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy).
 **Learning:** The HTTP RPC server was vulnerable to clickjacking, MIME-sniffing, and potentially XSS. These headers must be set globally on all responses.
 **Prevention:** Always set global security headers for all responses in the core HTTP handling logic (`HTTPRequest::WriteReply`).
+## 2024-05-15 - [P2P Denial of Service via Unhandled Statuses]
+**Vulnerability:** A generic catch-all `if (status != READ_STATUS_OK)` implicitly ignored specific error states (`READ_STATUS_INVALID`) returned by `PartiallyDownloadedBlock::InitData`, missing the opportunity to penalize malicious peers sending invalid compact blocks via `Misbehaving`.
+**Learning:** Code blocks annotated with "TODO: don't ignore failures" often mask real DoS vectors. Security by disconnection relies on active policing of protocol anomalies.
+**Prevention:** Always handle specific return codes representing explicitly malicious data or protocol violations (e.g., `READ_STATUS_INVALID`) before relying on generic error exits to ensure robust network defense.
