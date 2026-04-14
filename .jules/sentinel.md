@@ -12,7 +12,11 @@
 **Vulnerability:** Missing HTTP security headers (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy).
 **Learning:** The HTTP RPC server was vulnerable to clickjacking, MIME-sniffing, and potentially XSS. These headers must be set globally on all responses.
 **Prevention:** Always set global security headers for all responses in the core HTTP handling logic (`HTTPRequest::WriteReply`).
-## 2025-05-22 - [strncpy without guaranteed null-termination]
-**Vulnerability:** Use of `strncpy` can lead to non-null-terminated strings if the source length equals or exceeds the specified limit.
-**Learning:** Even with a preceding `memset` to zero, `strncpy` is often flagged as a security risk and is less explicit than modern alternatives.
-**Prevention:** Prefer `memcpy` combined with explicit null-termination after performing explicit bounds checks, ensuring both clarity and safety.
+## 2024-05-15 - [P2P Denial of Service via Unhandled Statuses]
+**Vulnerability:** A generic catch-all `if (status != READ_STATUS_OK)` implicitly ignored specific error states (`READ_STATUS_INVALID`) returned by `PartiallyDownloadedBlock::InitData`, missing the opportunity to penalize malicious peers sending invalid compact blocks via `Misbehaving`.
+**Learning:** Code blocks annotated with "TODO: don't ignore failures" often mask real DoS vectors. Security by disconnection relies on active policing of protocol anomalies.
+**Prevention:** Always handle specific return codes representing explicitly malicious data or protocol violations (e.g., `READ_STATUS_INVALID`) before relying on generic error exits to ensure robust network defense.
+## 2024-04-14 - Fix fail-open vulnerability in compact block initialization
+**Vulnerability:** Unrecognized or new `ReadStatus` enum values in `PartiallyDownloadedBlock::InitData` caused a fail-open state where initialization failures were ignored, processing potentially uninitialized compact blocks.
+**Learning:** Generic error handlers must use an outer `if (status != READ_STATUS_OK)` fallback rather than explicitly checking for specific known error conditions, to ensure safe fail-closed behavior if new errors are added.
+**Prevention:** Always maintain a secure fail-closed pattern (`if (status != OK) return;`) outside of specific status checks.
