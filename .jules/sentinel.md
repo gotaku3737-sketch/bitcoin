@@ -16,3 +16,7 @@
 **Vulnerability:** A generic catch-all `if (status != READ_STATUS_OK)` implicitly ignored specific error states (`READ_STATUS_INVALID`) returned by `PartiallyDownloadedBlock::InitData`, missing the opportunity to penalize malicious peers sending invalid compact blocks via `Misbehaving`.
 **Learning:** Code blocks annotated with "TODO: don't ignore failures" often mask real DoS vectors. Security by disconnection relies on active policing of protocol anomalies.
 **Prevention:** Always handle specific return codes representing explicitly malicious data or protocol violations (e.g., `READ_STATUS_INVALID`) before relying on generic error exits to ensure robust network defense.
+## 2024-04-14 - Fix fail-open vulnerability in compact block initialization
+**Vulnerability:** Unrecognized or new `ReadStatus` enum values in `PartiallyDownloadedBlock::InitData` caused a fail-open state where initialization failures were ignored, processing potentially uninitialized compact blocks.
+**Learning:** Generic error handlers must use an outer `if (status != READ_STATUS_OK)` fallback rather than explicitly checking for specific known error conditions, to ensure safe fail-closed behavior if new errors are added.
+**Prevention:** Always maintain a secure fail-closed pattern (`if (status != OK) return;`) outside of specific status checks.
