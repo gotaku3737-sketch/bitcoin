@@ -89,7 +89,8 @@ static bool ParseAddress(std::string& address,
         }
         memset(&addr, 0, sizeof(addr));
         addr.sun_family = AF_UNIX;
-        strncpy(addr.sun_path, path_str.c_str(), sizeof(addr.sun_path)-1);
+        memcpy(addr.sun_path, path_str.c_str(), path_str.size());
+        addr.sun_path[path_str.size()] = '\0';
         return true;
     }
 

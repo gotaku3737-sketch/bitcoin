@@ -12,3 +12,7 @@
 **Vulnerability:** Missing HTTP security headers (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy).
 **Learning:** The HTTP RPC server was vulnerable to clickjacking, MIME-sniffing, and potentially XSS. These headers must be set globally on all responses.
 **Prevention:** Always set global security headers for all responses in the core HTTP handling logic (`HTTPRequest::WriteReply`).
+## 2025-05-22 - [strncpy without guaranteed null-termination]
+**Vulnerability:** Use of `strncpy` can lead to non-null-terminated strings if the source length equals or exceeds the specified limit.
+**Learning:** Even with a preceding `memset` to zero, `strncpy` is often flagged as a security risk and is less explicit than modern alternatives.
+**Prevention:** Prefer `memcpy` combined with explicit null-termination after performing explicit bounds checks, ensuring both clarity and safety.
