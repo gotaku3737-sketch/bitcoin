@@ -356,6 +356,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "createwallet", 5, "descriptors"},
     { "createwallet", 6, "load_on_startup"},
     { "createwallet", 7, "external_signer"},
+    { "createwallet", 8, "external_signer_account"},
+    { "createwallet", 9, "external_signer_fingerprint", ParamFormat::STRING },
     { "restorewallet", 0, "wallet_name", ParamFormat::STRING },
     { "restorewallet", 1, "backup_file", ParamFormat::STRING },
     { "restorewallet", 2, "load_on_startup"},
