@@ -30,7 +30,7 @@ class UTXOSetHashTest(BitcoinTestFramework):
         # Generate 100 blocks and remove the first since we plan to spend its
         # coinbase
         block_hashes = self.generate(wallet, 1) + self.generate(node, 99)
-        blocks = list(map(lambda block: from_hex(CBlock(), node.getblock(block, False)), block_hashes))
+        blocks = list(map(lambda block: from_hex(CBlock(), block["result"]), node.batch([node.getblock.get_request(block, False) for block in block_hashes])))
         blocks.pop(0)
 
         # Create a spending transaction and mine a block which includes it

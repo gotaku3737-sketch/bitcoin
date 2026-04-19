@@ -258,7 +258,7 @@ class WalletTest(BitcoinTestFramework):
         # the hashes & heights between generated blocks.
         self.log.info("Test getbalances returns expected lastprocessedblock json object")
         prev_hash = self.nodes[0].getbestblockhash()
-        prev_height = self.nodes[0].getblock(prev_hash)['height']
+        prev_height = self.nodes[0].getblockcount()
         self.generatetoaddress(self.nodes[0], 5, self.nodes[0].get_deterministic_priv_key().address)
         lastblock = self.nodes[0].getbalances()['lastprocessedblock']
         assert_is_hash_string(lastblock['hash'])
@@ -266,7 +266,7 @@ class WalletTest(BitcoinTestFramework):
         assert_equal(lastblock['height'], prev_height + 5)
 
         prev_hash = self.nodes[0].getbestblockhash()
-        prev_height = self.nodes[0].getblock(prev_hash)['height']
+        prev_height = self.nodes[0].getblockcount()
         self.log.info("Test getwalletinfo returns expected lastprocessedblock json object")
         walletinfo = self.nodes[0].getwalletinfo()
         assert_equal(walletinfo['lastprocessedblock']['height'], prev_height)

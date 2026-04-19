@@ -281,7 +281,7 @@ class SendHeadersTest(BitcoinTestFramework):
                 # this time announce own block via headers
                 inv_node.clear_block_announcements()
                 height = self.nodes[0].getblockcount()
-                last_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
+                last_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
                 block_time = last_time + 1
                 new_block = create_block(tip, create_coinbase(height + 1), block_time)
                 new_block.solve()
@@ -432,7 +432,7 @@ class SendHeadersTest(BitcoinTestFramework):
         self.log.info("Part 4: Testing direct fetch behavior...")
         tip = self.mine_blocks(1)
         height = self.nodes[0].getblockcount() + 1
-        last_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
+        last_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
         block_time = last_time + 1
 
         # Create 2 blocks.  Send the blocks, then send the headers.

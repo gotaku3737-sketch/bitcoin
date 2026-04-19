@@ -82,7 +82,8 @@ class AssumeValidTest(BitcoinTestFramework):
     def run_test(self):
         # Build the blockchain
         self.tip = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time'] + 1
+        # ⚡ Bolt: Using getblockheader instead of getblock to avoid downloading full block payload when only time is needed
+        self.block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time'] + 1
 
         self.blocks = []
 
@@ -214,7 +215,7 @@ class AssumeValidTest(BitcoinTestFramework):
         # nodes[4]
         self.log.info("Send a block not in the assumevalid header chain to node4.")
         genesis_hash = self.nodes[4].getbestblockhash()
-        genesis_time = self.nodes[4].getblock(genesis_hash)['time']
+        genesis_time = self.nodes[4].getblockheader(genesis_hash)['time']
         alt1 = create_block(int(genesis_hash, 16), create_coinbase(1), genesis_time + 2)
         alt1.solve()
         p2p4 = self.nodes[4].add_p2p_connection(BaseNode())

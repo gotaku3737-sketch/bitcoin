@@ -51,7 +51,7 @@ class InvalidTxRequestTest(BitcoinTestFramework):
 
         best_block = self.nodes[0].getbestblockhash()
         tip = int(best_block, 16)
-        best_block_time = self.nodes[0].getblock(best_block)['time']
+        best_block_time = self.nodes[0].getblockheader(best_block)['time']
         block_time = best_block_time + 1
 
         self.log.info("Create a new block with an anyone-can-spend coinbase.")

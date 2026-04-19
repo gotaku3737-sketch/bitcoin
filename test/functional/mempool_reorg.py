@@ -142,8 +142,9 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # 3. Indirect (coinbase and child both in chain) : spend_3 and spend_3_1
         # Use re-org to make all of the above coinbase spends invalid (immature coinbase),
         # and make sure the mempool code behaves correctly.
-        b = [self.nodes[0].getblockhash(n) for n in range(first_block, first_block+4)]
-        coinbase_txids = [self.nodes[0].getblock(h)['tx'][0] for h in b]
+        b = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblockhash.get_request(n) for n in range(first_block, first_block+4)])]
+        # ⚡ Bolt: Batch getblock RPC calls to prevent N+1 queries during test execution
+        coinbase_txids = [res['result']['tx'][0] for res in self.nodes[0].batch([self.nodes[0].getblock.get_request(h) for h in b])]
         utxo_1 = wallet.get_utxo(txid=coinbase_txids[1])
         utxo_2 = wallet.get_utxo(txid=coinbase_txids[2])
         utxo_3 = wallet.get_utxo(txid=coinbase_txids[3])
@@ -185,7 +186,7 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # Jump node and MTP 300 seconds and generate a slightly weaker chain than reorg one
         self.nodes[0].setmocktime(future)
         self.generate(self.nodes[0], FORK_LENGTH - 1)
-        block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
+        block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
         assert(block_time >= now + 300)
 
         # generate() implicitly syncs blocks, so that peer 1 gets the block before timelock_tx
@@ -204,7 +205,7 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         self.sync_blocks()
 
         # We went backwards in time to boot timelock_tx_id
-        fork_block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time']
+        fork_block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
         assert fork_block_time < block_time
 
         self.log.info("The time-locked transaction is now too immature and has been removed from the mempool")

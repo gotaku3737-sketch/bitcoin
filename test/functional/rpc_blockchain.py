@@ -567,8 +567,8 @@ class BlockchainTest(BitcoinTestFramework):
         self.log.info("Test waitforblock and waitfornewblock")
         node = self.nodes[0]
 
-        current_height = node.getblock(node.getbestblockhash())['height']
-        current_hash = node.getblock(node.getbestblockhash())['hash']
+        current_height = node.getblockcount()
+        current_hash = node.getbestblockhash()
 
         self.log.debug("Roll the chain back a few blocks and then reconsider it")
         rollback_height = current_height - 100
@@ -603,7 +603,7 @@ class BlockchainTest(BitcoinTestFramework):
         node = self.nodes[0]
         peer = node.add_p2p_connection(P2PInterface())
 
-        current_height = node.getblock(node.getbestblockhash())['height']
+        current_height = node.getblockcount()
 
         # Create a fork somewhere below our current height, invalidate the tip
         # of that fork, and then ensure that waitforblockheight still
@@ -749,8 +749,8 @@ class BlockchainTest(BitcoinTestFramework):
         assert 'nextblockhash' not in node.getblock(node.getbestblockhash())
 
         self.log.info("Test getblock when only header is known")
-        current_height = node.getblock(node.getbestblockhash())['height']
-        block_time = node.getblock(node.getbestblockhash())['time'] + 1
+        current_height = node.getblockcount()
+        block_time = node.getblockheader(node.getbestblockhash())['time'] + 1
         block = create_block(int(blockhash, 16), create_coinbase(current_height + 1, nValue=100), block_time)
         block.solve()
         node.submitheader(block.serialize().hex())
