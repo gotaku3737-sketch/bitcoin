@@ -420,7 +420,7 @@ static RPCHelpMan createwallet()
     options.create_passphrase = passphrase;
     bilingual_str error;
     std::optional<bool> load_on_start = request.params[6].isNull() ? std::nullopt : std::optional<bool>(request.params[6].get_bool());
-    int account = request.params[8].isNull() ? 0 : request.params[8].get_int();
+    int account = request.params[8].isNull() ? 0 : request.params[8].getInt<int>();
     const std::shared_ptr<CWallet> wallet = CreateWallet(context, request.params[0].get_str(), load_on_start, options, status, error, warnings, account);
     HandleWalletError(wallet, status, error);
 
