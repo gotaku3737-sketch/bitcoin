@@ -20,3 +20,7 @@
 **Vulnerability:** Unrecognized or new `ReadStatus` enum values in `PartiallyDownloadedBlock::InitData` caused a fail-open state where initialization failures were ignored, processing potentially uninitialized compact blocks.
 **Learning:** Generic error handlers must use an outer `if (status != READ_STATUS_OK)` fallback rather than explicitly checking for specific known error conditions, to ensure safe fail-closed behavior if new errors are added.
 **Prevention:** Always maintain a secure fail-closed pattern (`if (status != OK) return;`) outside of specific status checks.
+## 2025-05-15 - [Security Improvement] Selection of external signer by fingerprint
+**Vulnerability:** Ambiguity in signer selection when multiple devices are connected could lead to user error or unintended signing actions.
+**Learning:** Identifying external signers by their unique master key fingerprint ensures that the wallet interacts with the intended hardware device.
+**Prevention:** Require or allow explicit identification of external resources (like signers) using unique cryptographic identifiers when multiple instances are available.

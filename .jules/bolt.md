@@ -9,3 +9,6 @@
 ## 2024-11-20 - Optimize String Mutation and Searching
 **Learning:** String mutations using `+=` character-by-character, even with `reserve()`, are significantly slower than copying the string and mutating in-place due to bounds-checking overhead. Additionally, standard library functions like `.find()` on `std::string_view` are heavily optimized (often vectorized) compared to manual character iteration.
 **Action:** When transforming string cases, construct a copy and mutate in-place rather than building a new string character by character. Prefer standard library search functions like `.find()` over manual loops.
+## 2025-05-15 - [External Signer Fingerprint]
+**Learning:** Multiple external signers can be handled by filtering with their master key fingerprint.
+**Action:** Always provide fingerprint when multiple signers might be present.
