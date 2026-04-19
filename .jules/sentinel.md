@@ -12,7 +12,15 @@
 **Vulnerability:** Missing HTTP security headers (X-Frame-Options, X-Content-Type-Options, Content-Security-Policy).
 **Learning:** The HTTP RPC server was vulnerable to clickjacking, MIME-sniffing, and potentially XSS. These headers must be set globally on all responses.
 **Prevention:** Always set global security headers for all responses in the core HTTP handling logic (`HTTPRequest::WriteReply`).
-## 2023-10-24 - Handle InitData failures for PartiallyDownloadedBlock correctly
-**Vulnerability:** Ignored initialization failures for partially downloaded blocks in P2P net processing logic.
-**Learning:** Returning without logging or acting upon `READ_STATUS_INVALID` when handling invalid compact blocks allowed peers to spam malformed protocol messages silently without consequence (DoS vector).
-**Prevention:** Always penalize explicitly invalid peer data using `Misbehaving(peer, ...)` instead of `// TODO: don't ignore failures`.
+## 2024-05-15 - [P2P Denial of Service via Unhandled Statuses]
+**Vulnerability:** A generic catch-all `if (status != READ_STATUS_OK)` implicitly ignored specific error states (`READ_STATUS_INVALID`) returned by `PartiallyDownloadedBlock::InitData`, missing the opportunity to penalize malicious peers sending invalid compact blocks via `Misbehaving`.
+**Learning:** Code blocks annotated with "TODO: don't ignore failures" often mask real DoS vectors. Security by disconnection relies on active policing of protocol anomalies.
+**Prevention:** Always handle specific return codes representing explicitly malicious data or protocol violations (e.g., `READ_STATUS_INVALID`) before relying on generic error exits to ensure robust network defense.
+## 2024-04-14 - Fix fail-open vulnerability in compact block initialization
+**Vulnerability:** Unrecognized or new `ReadStatus` enum values in `PartiallyDownloadedBlock::InitData` caused a fail-open state where initialization failures were ignored, processing potentially uninitialized compact blocks.
+**Learning:** Generic error handlers must use an outer `if (status != READ_STATUS_OK)` fallback rather than explicitly checking for specific known error conditions, to ensure safe fail-closed behavior if new errors are added.
+**Prevention:** Always maintain a secure fail-closed pattern (`if (status != OK) return;`) outside of specific status checks.
+## 2026-04-18 - Fix fail-open error handling in net_processing
+**Vulnerability:** The error handling for compact block construction in `src/net_processing.cpp` used an explicit equality check `if (status == READ_STATUS_INVALID)` and `if (status == READ_STATUS_FAILED)`. If a new `ReadStatus` value was added, it would fall through to the block success path, improperly parsing and applying invalid/malicious data.
+**Learning:** Checking for equality of explicit failure enums causes insecure, fail-open vulnerabilities if the enum expands over time.
+**Prevention:** Instead of explicit comparisons, default to securely closing the error scope using a negated check: `if (status != READ_STATUS_OK)`.
