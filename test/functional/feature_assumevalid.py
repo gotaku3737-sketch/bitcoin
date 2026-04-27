@@ -82,7 +82,8 @@ class AssumeValidTest(BitcoinTestFramework):
     def run_test(self):
         # Build the blockchain
         self.tip = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time'] + 1
+        # ⚡ Bolt: Using getblockheader instead of getblock to avoid downloading full block payload when only time is needed
+        self.block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time'] + 1
 
         self.blocks = []
 

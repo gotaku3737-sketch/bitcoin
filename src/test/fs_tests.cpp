@@ -139,31 +139,29 @@ BOOST_AUTO_TEST_CASE(rename)
     fs::remove(path2);
 }
 
-BOOST_AUTO_TEST_CASE(filecommit)
+BOOST_AUTO_TEST_CASE(truncate_file)
 {
     const fs::path tmpfolder{m_args.GetDataDirBase()};
-    const fs::path path{tmpfolder / "test_filecommit"};
+    const fs::path path{tmpfolder / "truncate_test.dat"};
 
-    // Test a newly created file.
-    FILE* file = fsbridge::fopen(path, "w");
-    BOOST_REQUIRE(file != nullptr);
-    BOOST_CHECK(FileCommit(file));
-    fclose(file);
+    {
+        std::ofstream file{path.std_path()};
+        file << "1234567890";
+    }
 
-    // Test an existing file opened for append.
-    file = fsbridge::fopen(path, "a");
-    BOOST_REQUIRE(file != nullptr);
-    const char* content = "test data";
-    BOOST_CHECK_EQUAL(fwrite(content, 1, strlen(content), file), strlen(content));
-    BOOST_CHECK(FileCommit(file));
-    fclose(file);
+    FILE* file = fsbridge::fopen(path, "r+");
+    BOOST_REQUIRE(file);
 
-    // Test an existing file opened for reading.
-    file = fsbridge::fopen(path, "r");
-    BOOST_REQUIRE(file != nullptr);
-    BOOST_CHECK(FileCommit(file));
-    fclose(file);
+    BOOST_CHECK(TruncateFile(file, 5));
+    BOOST_CHECK_EQUAL(fs::file_size(path), 5U);
 
+    BOOST_CHECK(TruncateFile(file, 15));
+    BOOST_CHECK_EQUAL(fs::file_size(path), 15U);
+
+    BOOST_CHECK(TruncateFile(file, 0));
+    BOOST_CHECK_EQUAL(fs::file_size(path), 0U);
+
+    std::fclose(file);
     fs::remove(path);
 }
 

@@ -80,9 +80,10 @@ static bool BindBlobToStatement(sqlite3_stmt* stmt,
 
 static std::optional<int> ReadPragmaInteger(sqlite3* db, const std::string& key, const std::string& description, bilingual_str& error)
 {
-    std::string stmt_text = strprintf("PRAGMA %s", key);
+    char* stmt_text = sqlite3_mprintf("PRAGMA %w", key.c_str());
     sqlite3_stmt* pragma_read_stmt{nullptr};
-    int ret = sqlite3_prepare_v2(db, stmt_text.c_str(), -1, &pragma_read_stmt, nullptr);
+    int ret = sqlite3_prepare_v2(db, stmt_text, -1, &pragma_read_stmt, nullptr);
+    sqlite3_free(stmt_text);
     if (ret != SQLITE_OK) {
         sqlite3_finalize(pragma_read_stmt);
         error = Untranslated(strprintf("SQLiteDatabase: Failed to prepare the statement to fetch %s: %s", description, sqlite3_errstr(ret)));
@@ -101,8 +102,9 @@ static std::optional<int> ReadPragmaInteger(sqlite3* db, const std::string& key,
 
 static void SetPragma(sqlite3* db, const std::string& key, const std::string& value, const std::string& err_msg)
 {
-    std::string stmt_text = strprintf("PRAGMA %s = %s", key, value);
-    int ret = sqlite3_exec(db, stmt_text.c_str(), nullptr, nullptr, nullptr);
+    char* stmt_text = sqlite3_mprintf("PRAGMA %w = %Q", key.c_str(), value.c_str());
+    int ret = sqlite3_exec(db, stmt_text, nullptr, nullptr, nullptr);
+    sqlite3_free(stmt_text);
     if (ret != SQLITE_OK) {
         throw std::runtime_error(strprintf("SQLiteDatabase: %s: %s\n", err_msg, sqlite3_errstr(ret)));
     }
