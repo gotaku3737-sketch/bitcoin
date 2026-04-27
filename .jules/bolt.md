@@ -12,3 +12,7 @@
 ## 2025-05-15 - [External Signer Fingerprint]
 **Learning:** Multiple external signers can be handled by filtering with their master key fingerprint.
 **Action:** Always provide fingerprint when multiple signers might be present.
+
+## 2024-04-22 - Optimize all() in functional tests
+**Learning:** Using list comprehensions within `all()` (e.g., `all([x in y for x in z])`) creates an intermediate list in memory before evaluating `all()`, which defeats the short-circuiting behavior of `all()`.
+**Action:** Use generator expressions instead of list comprehensions within `all()` (e.g., `all(x in y for x in z)`) to leverage short-circuiting and reduce memory allocations, as noted in the memory context.
