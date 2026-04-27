@@ -24,3 +24,7 @@
 **Vulnerability:** The error handling for compact block construction in `src/net_processing.cpp` used an explicit equality check `if (status == READ_STATUS_INVALID)` and `if (status == READ_STATUS_FAILED)`. If a new `ReadStatus` value was added, it would fall through to the block success path, improperly parsing and applying invalid/malicious data.
 **Learning:** Checking for equality of explicit failure enums causes insecure, fail-open vulnerabilities if the enum expands over time.
 **Prevention:** Instead of explicit comparisons, default to securely closing the error scope using a negated check: `if (status != READ_STATUS_OK)`.
+## 2025-05-14 - SQL Injection in SQLite PRAGMA Statements
+**Vulnerability:** Command injection via string interpolation in `SetPragma` and `ReadPragmaInteger` functions.
+**Learning:** SQLite `PRAGMA` statements do not support standard parameter binding (`?`), leading developers to use unsafe string formatting.
+**Prevention:** Use `sqlite3_mprintf` with `%w` for identifiers and `%Q` for values to safely construct `PRAGMA` statements, and always free the allocated memory with `sqlite3_free`.
