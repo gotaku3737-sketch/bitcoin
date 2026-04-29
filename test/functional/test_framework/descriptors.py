@@ -8,6 +8,8 @@ import re
 
 INPUT_CHARSET = "0123456789()[],'/*abcdefgh@:$%{}IJKLMNOPQRSTUVWXYZ&+-.;<=>?!^_|~ijklmnopqrstuvwxyzABCDEFGH`#\"\\ "
 CHECKSUM_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+INPUT_CHARSET_DICT = {c: i for i, c in enumerate(INPUT_CHARSET)}
+CHECKSUM_CHARSET_DICT = {c: i for i, c in enumerate(CHECKSUM_CHARSET)}
 GENERATOR = [0xf5dee51989, 0xa9fdca3312, 0x1bab10e32d, 0x3706b1677a, 0x644d626ffd]
 
 def descsum_polymod(symbols):
@@ -25,9 +27,9 @@ def descsum_expand(s):
     groups = []
     symbols = []
     for c in s:
-        if c not in INPUT_CHARSET:
+        if c not in INPUT_CHARSET_DICT:
             return None
-        v = INPUT_CHARSET.find(c)
+        v = INPUT_CHARSET_DICT[c]
         symbols.append(v & 31)
         groups.append(v >> 5)
         if len(groups) == 3:
@@ -51,9 +53,9 @@ def descsum_check(s, require=True):
         return not require
     if s[-9] != '#':
         return False
-    if not all(x in CHECKSUM_CHARSET for x in s[-8:]):
+    if not all(x in CHECKSUM_CHARSET_DICT for x in s[-8:]):
         return False
-    symbols = descsum_expand(s[:-9]) + [CHECKSUM_CHARSET.find(x) for x in s[-8:]]
+    symbols = descsum_expand(s[:-9]) + [CHECKSUM_CHARSET_DICT[x] for x in s[-8:]]
     return descsum_polymod(symbols) == 1
 
 def drop_origins(s):
