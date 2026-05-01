@@ -100,9 +100,10 @@ std::string EncodeBase64(std::span<const unsigned char> input)
     static const char *pbase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     std::string str;
-    str.reserve(((input.size() + 2) / 3) * 4);
-    ConvertBits<8, 6, true>([&](int v) { str += pbase64[v]; }, input.begin(), input.end());
-    while (str.size() % 4) str += '=';
+    str.resize(((input.size() + 2) / 3) * 4);
+    size_t pos = 0;
+    ConvertBits<8, 6, true>([&](int v) { str[pos++] = pbase64[v]; }, input.begin(), input.end());
+    while (pos < str.size()) str[pos++] = '=';
     return str;
 }
 
@@ -146,12 +147,16 @@ std::string EncodeBase32(std::span<const unsigned char> input, bool pad)
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
     std::string str;
-    str.reserve(((input.size() + 4) / 5) * 8);
-    ConvertBits<8, 5, true>([&](int v) { str += pbase32[v]; }, input.begin(), input.end());
+    const size_t out_len = ((input.size() + 4) / 5) * 8;
+    str.resize(out_len);
+    size_t pos = 0;
+    ConvertBits<8, 5, true>([&](int v) { str[pos++] = pbase32[v]; }, input.begin(), input.end());
     if (pad) {
-        while (str.size() % 8) {
-            str += '=';
+        while (pos < out_len) {
+            str[pos++] = '=';
         }
+    } else {
+        str.resize(pos);
     }
     return str;
 }

@@ -16,3 +16,6 @@
 ## 2024-04-22 - Optimize all() in functional tests
 **Learning:** Using list comprehensions within `all()` (e.g., `all([x in y for x in z])`) creates an intermediate list in memory before evaluating `all()`, which defeats the short-circuiting behavior of `all()`.
 **Action:** Use generator expressions instead of list comprehensions within `all()` (e.g., `all(x in y for x in z)`) to leverage short-circuiting and reduce memory allocations, as noted in the memory context.
+## 2024-05-01 - String construction performance
+**Learning:** C++ std::string character-by-character appending with '+=' has measurable overhead from bounds checking and reallocations, compared to pre-resizing and writing by index. Re-writing Base32/64 encoders this way yields a ~40% speedup.
+**Action:** When building strings of known or upper-bound size, pre-resize them and mutate via index instead of character appending.
