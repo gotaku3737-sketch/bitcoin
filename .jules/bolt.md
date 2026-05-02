@@ -16,3 +16,6 @@
 ## 2024-04-22 - Optimize all() in functional tests
 **Learning:** Using list comprehensions within `all()` (e.g., `all([x in y for x in z])`) creates an intermediate list in memory before evaluating `all()`, which defeats the short-circuiting behavior of `all()`.
 **Action:** Use generator expressions instead of list comprehensions within `all()` (e.g., `all(x in y for x in z)`) to leverage short-circuiting and reduce memory allocations, as noted in the memory context.
+## 2026-05-02 - Optimize all() and any() in Python Functional Tests
+**Learning:** Using list comprehensions within `all()` or `any()` (e.g., `all([x in y for x in z])`) forces Python to evaluate the entire list and keep it in memory before applying the short-circuiting logic. This defeats the purpose of early exits and increases memory allocations unnecessarily.
+**Action:** Always use generator expressions instead (e.g., `all(x in y for x in z)`) to allow Python to evaluate items lazily, immediately exiting on the first failure/success and reducing memory overhead.
