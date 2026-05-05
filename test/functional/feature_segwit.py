@@ -155,7 +155,7 @@ class SegWitTest(BitcoinTestFramework):
                 {"desc": sh_wpkh_desc, "timestamp": "now"},
                 {"desc": wpkh_desc, "timestamp": "now"},
             ])
-            assert all([r["success"] for r in res])
+            assert all(r["success"] for r in res)
 
             p2sh_ids.append([])
             wit_ids.append([])

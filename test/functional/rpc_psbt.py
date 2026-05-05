@@ -523,7 +523,7 @@ class PSBTTest(BitcoinTestFramework):
                 {"desc": p2wsh_ms["descriptor"], "timestamp": "now"},
                 {"desc": p2sh_p2wsh_ms["descriptor"], "timestamp": "now"},
             ])
-        assert_equal(all([r["success"] for r in import_res]), True)
+        assert_equal(all(r["success"] for r in import_res), True)
         p2wpkh = self.nodes[1].getnewaddress("", "bech32")
         p2pkh = self.nodes[1].getnewaddress("", "legacy")
         p2sh_p2wpkh = self.nodes[1].getnewaddress("", "p2sh-segwit")
