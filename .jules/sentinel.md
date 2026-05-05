@@ -28,3 +28,7 @@
 **Vulnerability:** SQL injection potential due to using `strprintf` to construct PRAGMA statements with unsanitized user inputs.
 **Learning:** SQLite PRAGMA statements do not support standard `?` parameter binding. This requires manual string construction which is prone to injection if not done safely.
 **Prevention:** Construct PRAGMA statements using `sqlite3_mprintf` with `%w` for identifiers and `%Q` for values, then free the resulting pointer with `sqlite3_free`.
+## 2025-05-23 - [Harden Notification Command Execution]
+**Vulnerability:** Command Injection in shell-executed notifications.
+**Learning:** Functions like AlertNotify were manually sanitizing and quoting interpolated strings, which is brittle and potentially bypassable compared to standard escaping utilities.
+**Prevention:** Use ShellEscape for all data interpolation in shell commands on supported platforms, and explicitly warn against unescaped interpolation in any code path that executes commands via the shell.
