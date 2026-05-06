@@ -19,3 +19,6 @@
 ## 2026-05-02 - Optimize all() and any() in Python Functional Tests
 **Learning:** Using list comprehensions within `all()` or `any()` (e.g., `all([x in y for x in z])`) forces Python to evaluate the entire list and keep it in memory before applying the short-circuiting logic. This defeats the purpose of early exits and increases memory allocations unnecessarily.
 **Action:** Always use generator expressions instead (e.g., `all(x in y for x in z)`) to allow Python to evaluate items lazily, immediately exiting on the first failure/success and reducing memory overhead.
+## 2024-05-06 - Replace GetStrongRandBytes with GetRandBytes for transient values
+**Learning:** `GetStrongRandBytes` performs slow OS-level entropy gathering and is meant for long-term secure keys. Using it for transient values like network nonces or unique prefixes unnecessarily drains OS entropy and blocks execution, negatively impacting performance. `GetRandBytes` is a fast CSPRNG and is the correct choice for these transient values.
+**Action:** Always prefer `GetRandBytes` for fast, transient network values, and reserve `GetStrongRandBytes` for long-term keys or high-security persistent secrets.

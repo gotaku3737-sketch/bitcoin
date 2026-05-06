@@ -777,7 +777,7 @@ private:
      */
     static std::string GenerateUniquePrefix() {
         std::array<uint8_t, PREFIX_BYTE_LENGTH> prefix_bytes;
-        GetStrongRandBytes(prefix_bytes);
+        GetRandBytes(prefix_bytes);
         return HexStr(prefix_bytes) + "-";
     }
 };

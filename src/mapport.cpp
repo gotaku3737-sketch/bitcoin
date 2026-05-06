@@ -34,7 +34,7 @@ static void ProcessPCP()
 {
     // The same nonce is used for all mappings, this is allowed by the spec, and simplifies keeping track of them.
     PCPMappingNonce pcp_nonce;
-    GetStrongRandBytes(pcp_nonce);
+    GetRandBytes(pcp_nonce);
 
     bool ret = false;
     bool no_resources = false;
