@@ -30,7 +30,7 @@ def check_package_limits(func):
 
         # Clear mempool and check that the package passes now
         self.generate(node, 1)
-        assert all([res["allowed"] for res in node.testmempoolaccept(rawtxs=package_hex)])
+        assert all(res["allowed"] for res in node.testmempoolaccept(rawtxs=package_hex))
 
     return func_wrapper
 

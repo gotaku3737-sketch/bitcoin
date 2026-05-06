@@ -739,6 +739,7 @@ static void StartupNotify(const ArgsManager& args)
 {
     std::string cmd = args.GetArg("-startupnotify", "");
     if (!cmd.empty()) {
+        // Note: This command is executed through the shell. Any future data interpolation must be escaped using ShellEscape to prevent command injection.
         std::thread t(runCommand, cmd);
         t.detach(); // thread runs free
     }
