@@ -587,9 +587,9 @@ void HTTPRequest::WriteReply(int nStatus, std::span<const std::byte> reply)
         WriteHeader("Connection", "close");
     }
 
-    // Add security headers to all HTTP responses
-    WriteHeader("X-Content-Type-Options", "nosniff");
+    // Security headers
     WriteHeader("X-Frame-Options", "DENY");
+    WriteHeader("X-Content-Type-Options", "nosniff");
     WriteHeader("Content-Security-Policy", "default-src 'none'");
 
     // Send event to main http thread to send reply message

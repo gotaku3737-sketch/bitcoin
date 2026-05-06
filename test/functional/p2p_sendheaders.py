@@ -384,7 +384,8 @@ class SendHeadersTest(BitcoinTestFramework):
 
             block_time += 9
 
-            fork_point = self.nodes[0].getblock("%064x" % new_block_hashes[0])["previousblockhash"]
+            # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
+            fork_point = self.nodes[0].getblockheader("%064x" % new_block_hashes[0])["previousblockhash"]
             fork_point = int(fork_point, 16)
 
             # Use getblocks/getdata

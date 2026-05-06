@@ -92,13 +92,9 @@ CoinStatsIndex::CoinStatsIndex(std::unique_ptr<interfaces::Chain> chain, size_t 
 {
     // An earlier version of the index used "indexes/coinstats" but it contained
     // a bug and is superseded by a fixed version at "indexes/coinstatsindex".
-    // The original index is kept around until the next release in case users
-    // decide to downgrade their node.
     auto old_path = gArgs.GetDataDirNet() / "indexes" / "coinstats";
     if (fs::exists(old_path)) {
-        // TODO: Change this to deleting the old index with v31.
-        LogWarning("Old version of coinstatsindex found at %s. This folder can be safely deleted unless you " \
-            "plan to downgrade your node to version 29 or lower.", fs::PathToString(old_path));
+        fs::remove_all(old_path);
     }
     fs::path path{gArgs.GetDataDirNet() / "indexes" / "coinstatsindex"};
     fs::create_directories(path);
