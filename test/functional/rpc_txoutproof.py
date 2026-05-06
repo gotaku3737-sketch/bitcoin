@@ -104,10 +104,48 @@ class MerkleBlockTest(BitcoinTestFramework):
         tweaked_proof.txn.vBits = [True] + [False]*7
 
         for n in self.nodes:
-            assert not n.verifytxoutproof(tweaked_proof.serialize().hex())
+            assert_equal(n.verifytxoutproof(tweaked_proof.serialize().hex()), [])
 
-        # TODO: try more variants, eg transactions at different depths, and
-        # verify that the proofs are invalid
+        # Try more variants, eg transactions at different depths
+        self.log.info("Test proof for transaction buried 10 blocks deep")
+        self.generate(self.nodes[0], 10)
+        assert_equal(self.nodes[0].verifytxoutproof(self.nodes[0].gettxoutproof([txid1])), [txid1])
+
+        # Verify a proof for a transaction from a very old block (height 1)
+        # using Node 1 (which has -txindex)
+        self.log.info("Test proof for transaction from a very old block (height 1) using txindex")
+        tx_old_hash = self.nodes[1].getblock(self.nodes[1].getblockhash(1))['tx'][0]
+        assert_equal(self.nodes[1].verifytxoutproof(self.nodes[1].gettxoutproof([tx_old_hash])), [tx_old_hash])
+
+        # Verify that tweaked proofs are invalid
+        self.log.info("Test tweaked proofs are invalid")
+        # 1. Tweak nTransactions
+        tweaked_proof = from_hex(CMerkleBlock(), proof)
+        tweaked_proof.txn.nTransactions += 1
+        for n in self.nodes:
+            assert_equal(n.verifytxoutproof(tweaked_proof.serialize().hex()), [])
+
+        # 2. Tweak vHash
+        tweaked_proof = from_hex(CMerkleBlock(), proof)
+        tweaked_proof.txn.vHash[0] = 0
+        for n in self.nodes:
+            assert_equal(n.verifytxoutproof(tweaked_proof.serialize().hex()), [])
+
+        # 3. Tweak vBits
+        tweaked_proof = from_hex(CMerkleBlock(), proof)
+        tweaked_proof.txn.vBits[0] = not tweaked_proof.txn.vBits[0]
+        for n in self.nodes:
+            assert_equal(n.verifytxoutproof(tweaked_proof.serialize().hex()), [])
+
+        # Proof for a block on a side chain
+        self.log.info("Test proof for a block on a side chain")
+        blockhash_side = self.nodes[0].getblockhash(self.nodes[0].getblockcount())
+        txid_side = self.nodes[0].getblock(blockhash_side)['tx'][0]
+        proof_side = self.nodes[0].gettxoutproof([txid_side], blockhash_side)
+        self.nodes[0].invalidateblock(blockhash_side)
+        assert_raises_rpc_error(-5, "Block not found in chain", self.nodes[0].verifytxoutproof, proof_side)
+        self.nodes[0].reconsiderblock(blockhash_side)
+        assert_equal(self.nodes[0].verifytxoutproof(proof_side), [txid_side])
 
 if __name__ == '__main__':
     MerkleBlockTest(__file__).main()

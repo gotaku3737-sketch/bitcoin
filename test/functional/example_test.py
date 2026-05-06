@@ -168,7 +168,6 @@ class ExampleTest(BitcoinTestFramework):
 
         self.log.info("Create some blocks")
         self.tip = int(self.nodes[0].getbestblockhash(), 16)
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         self.block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time'] + 1
 
         height = self.nodes[0].getblockcount()

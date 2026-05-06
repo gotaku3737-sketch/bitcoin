@@ -208,7 +208,6 @@ class MiningTest(BitcoinTestFramework):
         self.log.info("Create block two hours in the future")
         self.nodes[0].setmocktime(t + MAX_FUTURE_BLOCK_TIME)
         self.generate(self.wallet, 1, sync_fun=self.no_op)
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         assert_equal(node.getblockheader(node.getbestblockhash())['time'], t + MAX_FUTURE_BLOCK_TIME)
 
         self.log.info("First block template of retarget period can't use wall clock time")

@@ -170,7 +170,6 @@ class NotificationsTest(BitcoinTestFramework):
         # create a bunch of invalid blocks
         tip = self.nodes[0].getbestblockhash()
         height = self.nodes[0].getblockcount() + 1
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         block_time = self.nodes[0].getblockheader(tip)['time'] + 1
 
         invalid_blocks = []

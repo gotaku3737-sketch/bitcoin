@@ -35,7 +35,6 @@ class P2PEncrypted(BitcoinTestFramework):
         last_block = node.getbestblockhash()
         tip = int(last_block, 16)
         tipheight = node.getblockcount()
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         last_block_time = node.getblockheader(last_block)['time']
         for _ in range(number):
             # Create some blocks

@@ -193,7 +193,6 @@ class CoinStatsIndexTest(BitcoinTestFramework):
 
         # Generate a block that includes previous coinbase
         tip = self.nodes[0].getbestblockhash()
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         block_time = self.nodes[0].getblockheader(tip)['time'] + 1
         block = create_block(int(tip, 16), cb, block_time)
         block.solve()

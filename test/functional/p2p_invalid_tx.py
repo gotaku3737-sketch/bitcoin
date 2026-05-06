@@ -51,7 +51,6 @@ class InvalidTxRequestTest(BitcoinTestFramework):
 
         best_block = self.nodes[0].getbestblockhash()
         tip = int(best_block, 16)
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         best_block_time = self.nodes[0].getblockheader(best_block)['time']
         block_time = best_block_time + 1
 

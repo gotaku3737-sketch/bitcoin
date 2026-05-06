@@ -64,7 +64,6 @@ class P2PEvict(BitcoinTestFramework):
             block_peer.sync_with_ping()
             best_block = node.getbestblockhash()
             tip = int(best_block, 16)
-            # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
             best_block_time = node.getblockheader(best_block)['time']
             block = create_block(tip, create_coinbase(node.getblockcount() + 1), best_block_time + 1)
             block.solve()

@@ -27,6 +27,11 @@ FUZZ_TARGET(secp256k1_ec_seckey_import_export_der)
         size_t seckeylen = CKey::SIZE;
         const bool compressed = fuzzed_data_provider.ConsumeBool();
         secp256k1_context* secp256k1_context_sign = secp256k1_context_create(SECP256K1_CONTEXT_NONE);
+        {
+            std::vector<uint8_t> vseed = ConsumeFixedLengthByteVector(fuzzed_data_provider, 32);
+            bool ret = secp256k1_context_randomize(secp256k1_context_sign, vseed.data());
+            assert(ret);
+        }
         const bool exported = ec_seckey_export_der(secp256k1_context_sign, seckey.data(), &seckeylen, key32.data(), compressed);
         secp256k1_context_destroy(secp256k1_context_sign);
         if (exported) {

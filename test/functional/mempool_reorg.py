@@ -186,7 +186,6 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # Jump node and MTP 300 seconds and generate a slightly weaker chain than reorg one
         self.nodes[0].setmocktime(future)
         self.generate(self.nodes[0], FORK_LENGTH - 1)
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
         assert(block_time >= now + 300)
 
@@ -206,7 +205,6 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         self.sync_blocks()
 
         # We went backwards in time to boot timelock_tx_id
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         fork_block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time']
         assert fork_block_time < block_time
 

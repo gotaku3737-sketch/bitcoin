@@ -45,15 +45,32 @@ bool ExternalSignerScriptPubKeyMan::SetupDescriptor(WalletBatch& batch, std::uni
     return true;
 }
 
- util::Result<ExternalSigner> ExternalSignerScriptPubKeyMan::GetExternalSigner() {
+ util::Result<ExternalSigner> ExternalSignerScriptPubKeyMan::GetExternalSigner(const std::string& fingerprint) {
     const std::string command = gArgs.GetArg("-signer", "");
     if (command == "") return util::Error{Untranslated("restart bitcoind with -signer=<cmd>")};
     std::vector<ExternalSigner> signers;
     ExternalSigner::Enumerate(command, signers, Params().GetChainTypeString());
     if (signers.empty()) return util::Error{Untranslated("No external signers found")};
-    // TODO: add fingerprint argument instead of failing in case of multiple signers.
+    if (fingerprint != "") {
+        for (const auto& signer : signers) {
+            if (signer.m_fingerprint == fingerprint) return signer;
+        }
+        return util::Error{Untranslated("Signer with fingerprint " + fingerprint + " not found")};
+    }
     if (signers.size() > 1) return util::Error{Untranslated("More than one external signer found. Please connect only one at a time.")};
     return signers[0];
+}
+
+std::string ExternalSignerScriptPubKeyMan::GetFingerprint() const
+{
+    LOCK(cs_desc_man);
+    std::vector<CScript> scripts;
+    FlatSigningProvider provider;
+    m_wallet_descriptor.GetDescriptor()->Expand(0, provider, scripts, provider);
+    for (const auto& entry : provider.origins) {
+        return HexStr(entry.second.fingerprint);
+    }
+    return "";
 }
 
 util::Result<void> ExternalSignerScriptPubKeyMan::DisplayAddress(const CTxDestination& dest, const ExternalSigner &signer) const
@@ -93,7 +110,7 @@ std::optional<PSBTError> ExternalSignerScriptPubKeyMan::FillPSBT(PartiallySigned
     }
     if (complete) return {};
 
-    auto signer{GetExternalSigner()};
+    auto signer{GetExternalSigner(GetFingerprint())};
     if (!signer) {
         LogWarning("%s", util::ErrorString(signer).original);
         return PSBTError::EXTERNAL_SIGNER_NOT_FOUND;

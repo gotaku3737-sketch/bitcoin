@@ -567,21 +567,22 @@ public:
 
         // Generate report header.
         const std::string services{DetailsRequested() ? strprintf(" - services %s", FormatServices(networkinfo["localservicesnames"])) : ""};
-        std::string result{strprintf("%s client %s%s - server %i%s%s\n\n", CLIENT_NAME, FormatFullVersion(), ChainToString(), networkinfo["protocolversion"].getInt<int>(), networkinfo["subversion"].get_str(), services)};
+        std::ostringstream result;
+        tfm::format(result, "%s client %s%s - server %i%s%s\n\n", CLIENT_NAME, FormatFullVersion(), ChainToString(), networkinfo["protocolversion"].getInt<int>(), networkinfo["subversion"].get_str(), services);
 
         // Report detailed peer connections list sorted by direction and minimum ping time.
         if (DetailsRequested() && !m_peers.empty()) {
             std::sort(m_peers.begin(), m_peers.end());
-            result += strprintf("<->   type   net %*s  v  mping   ping send recv  txn  blk  hb %*s%*s%*s ",
+            tfm::format(result, "<->   type   net %*s  v  mping   ping send recv  txn  blk  hb %*s%*s%*s ",
                                 m_max_services_length, "serv",
                                 m_max_addr_processed_length, "addrp",
                                 m_max_addr_rate_limited_length, "addrl",
                                 m_max_age_length, "age");
-            if (m_is_asmap_on) result += " asmap ";
-            result += strprintf("%*s %-*s%s\n", m_max_id_length, "id", IsAddressSelected() ? m_max_addr_length : 0, IsAddressSelected() ? "address" : "", IsVersionSelected() ? "version" : "");
+            if (m_is_asmap_on) result << " asmap ";
+            tfm::format(result, "%*s %-*s%s\n", m_max_id_length, "id", IsAddressSelected() ? m_max_addr_length : 0, IsAddressSelected() ? "address" : "", IsVersionSelected() ? "version" : "");
             for (const Peer& peer : m_peers) {
                 std::string version{ToString(peer.version) + peer.sub_version};
-                result += strprintf(
+                tfm::format(result,
                     "%3s %6s %5s %*s %2s%7s%7s%5s%5s%5s%5s  %2s %*s%*s%*s%*i %*s %-*s%s\n",
                     peer.is_outbound ? "out" : "in",
                     ConnectionTypeForNetinfo(peer.conn_type),
@@ -610,63 +611,63 @@ public:
                     IsAddressSelected() ? peer.addr : "",
                     IsVersionSelected() && version != "0" ? version : "");
             }
-            result += strprintf("                %*s         ms     ms  sec  sec  min  min                %*s\n\n", m_max_services_length, "", m_max_age_length, "min");
+            tfm::format(result, "                %*s         ms     ms  sec  sec  min  min                %*s\n\n", m_max_services_length, "", m_max_age_length, "min");
         }
 
         // Report peer connection totals by type.
-        result += "     ";
+        result << "     ";
         std::vector<int8_t> reachable_networks;
         for (const UniValue& network : networkinfo["networks"].getValues()) {
             if (network["reachable"].get_bool()) {
                 const std::string& network_name{network["name"].get_str()};
                 const int8_t network_id{NetworkStringToId(network_name)};
                 if (network_id == UNKNOWN_NETWORK) continue;
-                result += strprintf("%8s", network_name); // column header
+                tfm::format(result, "%8s", network_name); // column header
                 reachable_networks.push_back(network_id);
             }
         };
 
         for (const size_t network_id : UNREACHABLE_NETWORK_IDS) {
             if (m_counts.at(2).at(network_id) == 0) continue;
-            result += strprintf("%8s", NETWORK_SHORT_NAMES.at(network_id)); // column header
+            tfm::format(result, "%8s", NETWORK_SHORT_NAMES.at(network_id)); // column header
             reachable_networks.push_back(network_id);
         }
 
-        result += "   total   block";
-        if (m_manual_peers_count) result += "  manual";
+        result << "   total   block";
+        if (m_manual_peers_count) result << "  manual";
 
         const std::array rows{"in", "out", "total"};
         for (size_t i = 0; i < rows.size(); ++i) {
-            result += strprintf("\n%-5s", rows[i]); // row header
+            tfm::format(result, "\n%-5s", rows[i]); // row header
             for (int8_t n : reachable_networks) {
-                result += strprintf("%8i", m_counts.at(i).at(n)); // network peers count
+                tfm::format(result, "%8i", m_counts.at(i).at(n)); // network peers count
             }
-            result += strprintf("   %5i", m_counts.at(i).at(NETWORKS.size())); // total peers count
+            tfm::format(result, "   %5i", m_counts.at(i).at(NETWORKS.size())); // total peers count
             if (i == 1) { // the outbound row has two extra columns for block relay and manual peer counts
-                result += strprintf("   %5i", m_block_relay_peers_count);
-                if (m_manual_peers_count) result += strprintf("   %5i", m_manual_peers_count);
+                tfm::format(result, "   %5i", m_block_relay_peers_count);
+                if (m_manual_peers_count) tfm::format(result, "   %5i", m_manual_peers_count);
             }
         }
 
         // Report local services, addresses, ports, and scores.
         if (!DetailsRequested()) {
-            result += strprintf("\n\nLocal services: %s", ServicesList(networkinfo["localservicesnames"]));
+            tfm::format(result, "\n\nLocal services: %s", ServicesList(networkinfo["localservicesnames"]));
         }
-        result += "\n\nLocal addresses";
+        result << "\n\nLocal addresses";
         const std::vector<UniValue>& local_addrs{networkinfo["localaddresses"].getValues()};
         if (local_addrs.empty()) {
-            result += ": n/a\n";
+            result << ": n/a\n";
         } else {
             size_t max_addr_size{0};
             for (const UniValue& addr : local_addrs) {
                 max_addr_size = std::max(addr["address"].get_str().length() + 1, max_addr_size);
             }
             for (const UniValue& addr : local_addrs) {
-                result += strprintf("\n%-*s    port %6i    score %6i", max_addr_size, addr["address"].get_str(), addr["port"].getInt<int>(), addr["score"].getInt<int>());
+                tfm::format(result, "\n%-*s    port %6i    score %6i", max_addr_size, addr["address"].get_str(), addr["port"].getInt<int>(), addr["score"].getInt<int>());
             }
         }
 
-        return JSONRPCReplyObj(UniValue{result}, NullUniValue, /*id=*/1, JSONRPCVersion::V2);
+        return JSONRPCReplyObj(UniValue{result.str()}, NullUniValue, /*id=*/1, JSONRPCVersion::V2);
     }
 
     const std::string m_help_doc{

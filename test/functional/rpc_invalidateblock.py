@@ -43,7 +43,6 @@ class InvalidateTest(BitcoinTestFramework):
         # Add a header to the tip of node 0 without submitting the block. This shouldn't
         # affect results since this chain will be invalidated next.
         tip = self.nodes[0].getbestblockhash()
-        # bolt optimization: use getblockheader instead of getblock for faster performance when only header fields are needed
         block_time = self.nodes[0].getblockheader(self.nodes[0].getbestblockhash())['time'] + 1
         block = create_block(int(tip, 16), create_coinbase(self.nodes[0].getblockcount()), block_time, version=4)
         block.solve()
