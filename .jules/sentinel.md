@@ -24,7 +24,11 @@
 **Vulnerability:** The error handling for compact block construction in `src/net_processing.cpp` used an explicit equality check `if (status == READ_STATUS_INVALID)` and `if (status == READ_STATUS_FAILED)`. If a new `ReadStatus` value was added, it would fall through to the block success path, improperly parsing and applying invalid/malicious data.
 **Learning:** Checking for equality of explicit failure enums causes insecure, fail-open vulnerabilities if the enum expands over time.
 **Prevention:** Instead of explicit comparisons, default to securely closing the error scope using a negated check: `if (status != READ_STATUS_OK)`.
-## 2024-05-30 - SQL Injection via SQLite PRAGMA Statements
-**Vulnerability:** SQL injection vulnerability found in `src/wallet/sqlite.cpp` where PRAGMA statements (`ReadPragmaInteger` and `SetPragma`) were constructed using standard `strprintf("PRAGMA %s = %s", ...)` string formatting instead of safe parameter binding.
-**Learning:** SQLite PRAGMA statements do not support standard `?` parameter binding. Because of this, developers resorted to string concatenation, which opened up the risk for SQL injection if the keys or values contained malicious characters.
-**Prevention:** When constructing SQLite PRAGMA statements (or other statements that don't support `?` binding like table/column identifiers), always use `sqlite3_mprintf` with `%w` for identifiers (which safely quotes and escapes them) and `%Q` for string values. Remember to free the resulting pointer with `sqlite3_free`.
+## 2024-05-24 - SQLite PRAGMA Parameterization
+**Vulnerability:** SQL injection potential due to using `strprintf` to construct PRAGMA statements with unsanitized user inputs.
+**Learning:** SQLite PRAGMA statements do not support standard `?` parameter binding. This requires manual string construction which is prone to injection if not done safely.
+**Prevention:** Construct PRAGMA statements using `sqlite3_mprintf` with `%w` for identifiers and `%Q` for values, then free the resulting pointer with `sqlite3_free`.
+## 2025-05-23 - [Harden Notification Command Execution]
+**Vulnerability:** Command Injection in shell-executed notifications.
+**Learning:** Functions like AlertNotify were manually sanitizing and quoting interpolated strings, which is brittle and potentially bypassable compared to standard escaping utilities.
+**Prevention:** Use ShellEscape for all data interpolation in shell commands on supported platforms, and explicitly warn against unescaped interpolation in any code path that executes commands via the shell.
