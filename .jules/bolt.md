@@ -22,3 +22,7 @@
 ## 2024-05-06 - Replace GetStrongRandBytes with GetRandBytes for transient values
 **Learning:** `GetStrongRandBytes` performs slow OS-level entropy gathering and is meant for long-term secure keys. Using it for transient values like network nonces or unique prefixes unnecessarily drains OS entropy and blocks execution, negatively impacting performance. `GetRandBytes` is a fast CSPRNG and is the correct choice for these transient values.
 **Action:** Always prefer `GetRandBytes` for fast, transient network values, and reserve `GetStrongRandBytes` for long-term keys or high-security persistent secrets.
+
+## 2024-05-11 - OS Entropy Depletion
+**Learning:** Using GetStrongRandBytes() for transient nonces or temporary verification purposes unnecessarily depletes the OS entropy pool.
+**Action:** Always use GetRandBytes() (the fast CSPRNG) for transient values, reserving GetStrongRandBytes() only for long-term cryptographic key material.
