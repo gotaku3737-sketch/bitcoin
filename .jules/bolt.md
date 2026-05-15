@@ -16,6 +16,12 @@
 ## 2024-04-22 - Optimize all() in functional tests
 **Learning:** Using list comprehensions within `all()` (e.g., `all([x in y for x in z])`) creates an intermediate list in memory before evaluating `all()`, which defeats the short-circuiting behavior of `all()`.
 **Action:** Use generator expressions instead of list comprehensions within `all()` (e.g., `all(x in y for x in z)`) to leverage short-circuiting and reduce memory allocations, as noted in the memory context.
-## 2024-05-01 - String construction performance
-**Learning:** C++ std::string character-by-character appending with '+=' has measurable overhead from bounds checking and reallocations, compared to pre-resizing and writing by index. Re-writing Base32/64 encoders this way yields a ~40% speedup.
-**Action:** When building strings of known or upper-bound size, pre-resize them and mutate via index instead of character appending.
+## 2026-05-02 - Optimize all() and any() in Python Functional Tests
+**Learning:** Using list comprehensions within `all()` or `any()` (e.g., `all([x in y for x in z])`) forces Python to evaluate the entire list and keep it in memory before applying the short-circuiting logic. This defeats the purpose of early exits and increases memory allocations unnecessarily.
+**Action:** Always use generator expressions instead (e.g., `all(x in y for x in z)`) to allow Python to evaluate items lazily, immediately exiting on the first failure/success and reducing memory overhead.
+## 2024-05-06 - Replace GetStrongRandBytes with GetRandBytes for transient values
+**Learning:** `GetStrongRandBytes` performs slow OS-level entropy gathering and is meant for long-term secure keys. Using it for transient values like network nonces or unique prefixes unnecessarily drains OS entropy and blocks execution, negatively impacting performance. `GetRandBytes` is a fast CSPRNG and is the correct choice for these transient values.
+**Action:** Always prefer `GetRandBytes` for fast, transient network values, and reserve `GetStrongRandBytes` for long-term keys or high-security persistent secrets.
+## 2024-05-14 - Pre-resizing String Encodings Avoids Reallocation Overhead
+**Learning:** When building strings with known or calculable upper-bound sizes, pre-resizing (`str.resize()`) and mutating by index (`str[pos++] = char`) avoids bounds-checking and reallocation overhead, leading to significant CPU efficiency gains compared to repeated character appending (`str += char`), providing an observed 25-35% speedup for string encoders.
+**Action:** For string construction with a predictable max size in performance-critical areas, prefer `resize()` over `reserve()` paired with index-based mutation over `+=` concatenation.

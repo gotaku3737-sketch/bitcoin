@@ -147,12 +147,12 @@ std::string EncodeBase32(std::span<const unsigned char> input, bool pad)
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
     std::string str;
-    const size_t out_len = ((input.size() + 4) / 5) * 8;
-    str.resize(out_len);
+    size_t expected_size = ((input.size() + 4) / 5) * 8;
+    str.resize(expected_size);
     size_t pos = 0;
     ConvertBits<8, 5, true>([&](int v) { str[pos++] = pbase32[v]; }, input.begin(), input.end());
     if (pad) {
-        while (pos < out_len) {
+        while (pos < expected_size) {
             str[pos++] = '=';
         }
     } else {

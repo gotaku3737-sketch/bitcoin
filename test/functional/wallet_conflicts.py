@@ -146,7 +146,7 @@ class TxConflicts(BitcoinTestFramework):
 
         unspents = alice.listunspent()
         assert_equal(len(unspents), 3)
-        assert all([tx["amount"] == 25 for tx in unspents])
+        assert all(tx["amount"] == 25 for tx in unspents)
 
         # tx1 spends unspent[0] and unspent[1]
         raw_tx = alice.createrawtransaction(inputs=[unspents[0], unspents[1]], outputs=[{bob.getnewaddress() : 49.9999}])
@@ -336,7 +336,7 @@ class TxConflicts(BitcoinTestFramework):
 
         unspents = alice.listunspent()
         assert_equal(len(unspents), 2)
-        assert all([tx["amount"] == 25 for tx in unspents])
+        assert all(tx["amount"] == 25 for tx in unspents)
 
         assert_equal(alice.getrawmempool(), [])
 
