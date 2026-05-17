@@ -25,3 +25,6 @@
 ## 2024-05-14 - Pre-resizing String Encodings Avoids Reallocation Overhead
 **Learning:** When building strings with known or calculable upper-bound sizes, pre-resizing (`str.resize()`) and mutating by index (`str[pos++] = char`) avoids bounds-checking and reallocation overhead, leading to significant CPU efficiency gains compared to repeated character appending (`str += char`), providing an observed 25-35% speedup for string encoders.
 **Action:** For string construction with a predictable max size in performance-critical areas, prefer `resize()` over `reserve()` paired with index-based mutation over `+=` concatenation.
+## 2024-05-18 - Optimize std::regex_replace with string find and replace
+**Learning:** `std::regex_replace` can be extremely slow compared to a manual loop using `std::string::find` and `std::string::replace` when dealing with simple plain-text search and substitution.
+**Action:** Replace `std::regex_replace` with a manual string find and replace loop for plain string substitution where regex matching is not actually needed.
