@@ -65,7 +65,7 @@ class MempoolClusterTest(BitcoinTestFramework):
             assert_equal(sorted(mempool_ancestors), sorted(all_txids))
 
             # Confirm that each successive transaction is added as a descendant.
-            assert all([ next_tx["txid"] in node.getmempooldescendants(x) for x in all_txids ])
+            assert all(next_tx["txid"] in node.getmempooldescendants(x) for x in all_txids)
 
             # Update for next iteration
             all_results.append(next_tx)

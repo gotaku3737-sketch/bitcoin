@@ -604,8 +604,8 @@ void TorController::protocolinfo_cb(TorControlConnection& _conn, const TorContro
                 // _conn.Command("AUTHENTICATE " + HexStr(status_cookie.second), std::bind_front(&TorController::auth_cb, this));
                 cookie = std::vector<uint8_t>(status_cookie.second.begin(), status_cookie.second.end());
                 clientNonce = std::vector<uint8_t>(TOR_NONCE_SIZE, 0);
-                // Use strong randomness for the client nonce in SAFECOOKIE auth
-                GetStrongRandBytes(clientNonce);
+                // Use fast randomness for the client nonce in SAFECOOKIE auth
+                GetRandBytes(clientNonce);
                 _conn.Command("AUTHCHALLENGE SAFECOOKIE " + HexStr(clientNonce), std::bind_front(&TorController::authchallenge_cb, this));
             } else {
                 if (status_cookie.first) {
