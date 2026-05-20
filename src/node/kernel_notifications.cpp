@@ -39,7 +39,7 @@ static void AlertNotify(const std::string& strMessage)
 #ifndef WIN32
     safeStatus = ShellEscape(strMessage);
 #else
-    safeStatus = "'" + SanitizeString(strMessage) + "'";
+    safeStatus = "\"" + SanitizeString(strMessage) + "\"";
 #endif
     ReplaceAll(strCmd, "%s", safeStatus);
 
