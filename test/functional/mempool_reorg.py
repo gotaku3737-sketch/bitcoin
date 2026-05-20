@@ -143,7 +143,6 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
         # Use re-org to make all of the above coinbase spends invalid (immature coinbase),
         # and make sure the mempool code behaves correctly.
         b = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblockhash.get_request(n) for n in range(first_block, first_block+4)])]
-        # ⚡ Bolt: Batch getblock RPC calls to prevent N+1 queries during test execution
         coinbase_txids = [res['result']['tx'][0] for res in self.nodes[0].batch([self.nodes[0].getblock.get_request(h) for h in b])]
         utxo_1 = wallet.get_utxo(txid=coinbase_txids[1])
         utxo_2 = wallet.get_utxo(txid=coinbase_txids[2])

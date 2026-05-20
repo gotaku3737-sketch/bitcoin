@@ -23,14 +23,14 @@ class InvalidLocatorTest(BitcoinTestFramework):
         for msg in [msg_getheaders(), msg_getblocks()]:
             self.log.info('Wait for disconnect when sending {} hashes in locator'.format(MAX_LOCATOR_SZ + 1))
             exceed_max_peer = node.add_p2p_connection(P2PInterface())
-            msg.locator.vHave = [int(node.getblockhash(i - 1), 16) for i in range(block_count, block_count - (MAX_LOCATOR_SZ + 1), -1)]
+            msg.locator.vHave = [int(h["result"], 16) for h in node.batch([node.getblockhash.get_request(i - 1) for i in range(block_count, block_count - (MAX_LOCATOR_SZ + 1), -1)])]
             exceed_max_peer.send_without_ping(msg)
             exceed_max_peer.wait_for_disconnect()
             node.disconnect_p2ps()
 
             self.log.info('Wait for response when sending {} hashes in locator'.format(MAX_LOCATOR_SZ))
             within_max_peer = node.add_p2p_connection(P2PInterface())
-            msg.locator.vHave = [int(node.getblockhash(i - 1), 16) for i in range(block_count, block_count - (MAX_LOCATOR_SZ), -1)]
+            msg.locator.vHave = [int(h["result"], 16) for h in node.batch([node.getblockhash.get_request(i - 1) for i in range(block_count, block_count - (MAX_LOCATOR_SZ), -1)])]
             within_max_peer.send_without_ping(msg)
             if type(msg) is msg_getheaders:
                 within_max_peer.wait_for_header(node.getbestblockhash())
