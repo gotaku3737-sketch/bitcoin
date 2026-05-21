@@ -46,7 +46,7 @@ def mine_large_blocks(node, n):
 
     # Get the block parameters for the first block
     big_script = CScript([OP_RETURN] + [OP_NOP] * 950000)
-    best_block = node.getblock(node.getbestblockhash())
+    best_block = node.getblockheader(node.getbestblockhash())
     height = int(best_block["height"]) + 1
     mine_large_blocks.nTime = max(mine_large_blocks.nTime, int(best_block["time"])) + 1
     previousblockhash = int(best_block["hash"], 16)

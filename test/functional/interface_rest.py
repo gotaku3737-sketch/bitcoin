@@ -433,8 +433,11 @@ class RESTTest (BitcoinTestFramework):
         self.log.info("Test the /spenttxouts URI")
 
         block_count = self.nodes[0].getblockcount()
+        # ⚡ Bolt: Batch getblock RPC calls to prevent N+1 queries during test execution
+        block_hashes = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblockhash.get_request(height) for height in range(0, block_count + 1)])]
+        blocks = [res['result'] for res in self.nodes[0].batch([self.nodes[0].getblock.get_request(blockhash, 3) for blockhash in block_hashes])]
         for height in range(0, block_count + 1):
-            blockhash = self.nodes[0].getblockhash(height)
+            blockhash = block_hashes[height]
             spent_bin = self.test_rest_request(f"/spenttxouts/{blockhash}", req_type=ReqType.BIN, ret_type=RetType.BYTES)
             spent_hex = self.test_rest_request(f"/spenttxouts/{blockhash}", req_type=ReqType.HEX, ret_type=RetType.BYTES)
             spent_json = self.test_rest_request(f"/spenttxouts/{blockhash}", req_type=ReqType.JSON, ret_type=RetType.JSON)
@@ -442,7 +445,7 @@ class RESTTest (BitcoinTestFramework):
             assert_equal(bytes.fromhex(spent_hex.decode()), spent_bin)
 
             spent = deser_block_spent_outputs(BytesIO(spent_bin))
-            block = self.nodes[0].getblock(blockhash, 3)  # return prevout for each input
+            block = blocks[height]  # return prevout for each input
             assert_equal(len(spent), len(block["tx"]))
             assert_equal(len(spent_json), len(block["tx"]))
 
