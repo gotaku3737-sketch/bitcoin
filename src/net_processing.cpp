@@ -4678,20 +4678,19 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
 
                 PartiallyDownloadedBlock& partialBlock = *(*queuedBlockIt)->partialBlock;
                 ReadStatus status = partialBlock.InitData(cmpctblock, vExtraTxnForCompact);
-                if (status != READ_STATUS_OK) {
-                    if (status == READ_STATUS_INVALID) {
-                        RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
-                        Misbehaving(peer, "invalid compact block");
-                    } else if (status == READ_STATUS_FAILED) {
-                        if (first_in_flight)  {
-                            // Duplicate txindexes, the block is now in-flight, so just request it
-                            std::vector<CInv> vInv(1);
-                            vInv[0] = CInv(MSG_BLOCK | GetFetchFlags(peer), blockhash);
-                            MakeAndPushMessage(pfrom, NetMsgType::GETDATA, vInv);
-                        } else {
-                            // Give up for this peer and wait for other peer(s)
-                            RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId());
-                        }
+                if (status == READ_STATUS_INVALID) {
+                    RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
+                    Misbehaving(peer, "invalid compact block");
+                    return;
+                } else if (status == READ_STATUS_FAILED) {
+                    if (first_in_flight)  {
+                        // Duplicate txindexes, the block is now in-flight, so just request it
+                        std::vector<CInv> vInv(1);
+                        vInv[0] = CInv(MSG_BLOCK | GetFetchFlags(peer), blockhash);
+                        MakeAndPushMessage(pfrom, NetMsgType::GETDATA, vInv);
+                    } else {
+                        // Give up for this peer and wait for other peer(s)
+                        RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId());
                     }
                     return;
                 }
@@ -4731,11 +4730,6 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 PartiallyDownloadedBlock tempBlock(&m_mempool);
                 ReadStatus status = tempBlock.InitData(cmpctblock, vExtraTxnForCompact);
                 if (status != READ_STATUS_OK) {
-                    if (status == READ_STATUS_INVALID) {
-                        Misbehaving(peer, "invalid compact block");
-                    } else if (status == READ_STATUS_FAILED) {
-                        LogDebug(BCLog::NET, "Optimistic compact block reconstruction failed\n");
-                    }
                     // TODO: don't ignore failures
                     return;
                 }
