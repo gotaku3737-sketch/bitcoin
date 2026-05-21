@@ -31,6 +31,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <tuple>
 
@@ -1173,7 +1174,7 @@ static void ParseGetInfoResult(UniValue& result)
                                        result["balances"][wallet].getValStr(),
                                        wallet.empty() ? "\"\"" : wallet);
         }
-        tfm::format(result_string, "\n");
+        result_string << "\n";
     }
 
     const std::string warnings{result["warnings"].getValStr()};

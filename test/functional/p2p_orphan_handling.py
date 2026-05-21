@@ -97,7 +97,7 @@ class PeerTxRelayer(P2PTxInvStore):
             last_getdata = self.last_message.get('getdata')
             if not last_getdata:
                 return False
-            return len(last_getdata.inv) == len(txids) and all([item.type == MSG_WITNESS_TX and item.hash in txids for item in last_getdata.inv])
+            return len(last_getdata.inv) == len(txids) and all(item.type == MSG_WITNESS_TX and item.hash in txids for item in last_getdata.inv)
         self.wait_until(test_function, timeout=10)
 
     def assert_no_immediate_response(self, message):
@@ -312,7 +312,7 @@ class OrphanHandlingTest(BitcoinTestFramework):
         peer_orphans = node.add_p2p_connection(PeerTxRelayer())
 
         confirmed_utxos = [self.wallet_nonsegwit.get_utxo() for _ in range(4)]
-        assert all([utxo["confirmations"] > 0 for utxo in confirmed_utxos])
+        assert all(utxo["confirmations"] > 0 for utxo in confirmed_utxos)
         self.log.info("Test handling of multiple orphans with missing parents that are already being requested")
         # Parent of child_A only
         missing_parent_A = self.wallet_nonsegwit.create_self_transfer(utxo_to_spend=confirmed_utxos[0])
