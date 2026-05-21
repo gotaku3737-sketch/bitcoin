@@ -32,7 +32,7 @@ static void WalletCreate(CWallet* wallet_instance, uint64_t wallet_creation_flag
     wallet_instance->InitWalletFlags(wallet_creation_flags);
 
     Assert(wallet_instance->IsWalletFlagSet(WALLET_FLAG_DESCRIPTORS));
-    wallet_instance->SetupDescriptorScriptPubKeyMans();
+    wallet_instance->SetupDescriptorScriptPubKeyMans(/*account=*/0);
 
     tfm::format(std::cout, "Topping up keypool...\n");
     wallet_instance->TopUpKeyPool();

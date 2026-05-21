@@ -113,7 +113,7 @@ class WalletSendTest(BitcoinTestFramework):
         expect_sign = from_wallet.getwalletinfo()["private_keys_enabled"]
         expect_sign = expect_sign and solving_data is None
         if inputs is not None:
-            expect_sign = expect_sign and all(["weight" not in i for i in inputs])
+            expect_sign = expect_sign and all("weight" not in i for i in inputs)
 
         if expect_error is None:
             res = from_wallet.send(outputs=outputs, conf_target=arg_conf_target, estimate_mode=arg_estimate_mode, fee_rate=arg_fee_rate, options=options)

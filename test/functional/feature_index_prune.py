@@ -46,10 +46,21 @@ class FeatureIndexPruneTest(BitcoinTestFramework):
         to_height = node_from.getblockcount()
         if height_from is None:
             height_from = min([n.getblockcount() for n in self.nodes]) + 1
+
+        if height_from > to_height:
+            return
+
+        # Batch fetch block hashes
+        hashes = send_batch_request(node_from, "getblockhash", [[i] for i in range(height_from, to_height + 1)])
+
+        # Batch fetch blocks (verbosity=0)
+        blocks = send_batch_request(node_from, "getblock", [[h, 0] for h in hashes])
+
+        def submit_blocks(node, blocks):
+            send_batch_request(node, "submitblock", [[b] for b in blocks])
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.num_nodes) as rpc_threads:
-            for i in range(height_from, to_height + 1):
-                b = node_from.getblock(blockhash=node_from.getblockhash(i), verbosity=0)
-                list(rpc_threads.map(lambda n: n.submitblock(b), self.nodes))
+            list(rpc_threads.map(lambda n: submit_blocks(n, blocks), self.nodes))
 
     def generate(self, node, num_blocks, sync_fun=None):
         return super().generate(node, num_blocks, sync_fun=sync_fun or (lambda: self.linear_sync(node)))
