@@ -189,9 +189,8 @@ class AcceptBlockTest(BitcoinTestFramework):
         test_node.sync_with_ping()
 
         # Blocks 1-287 should be accepted, block 288 should be ignored because it's too far ahead
-        # ⚡ Bolt Optimization: Batch getblock RPC calls to prevent N+1 query bottlenecks.
-        # This reduces 287 sequential HTTP requests down to a single batched JSON-RPC request, significantly accelerating test execution.
         self.nodes[0].batch([self.nodes[0].getblock.get_request(x.hash_hex) for x in all_blocks[:-1]])
+
         assert_raises_rpc_error(-1, "Block not available (not fully downloaded)", self.nodes[0].getblock, all_blocks[-1].hash_hex)
 
         # 5. Test handling of unrequested block on the node that didn't process

@@ -11,10 +11,21 @@
 
 std::string UrlDecode(std::string_view url_encoded)
 {
-    std::string res;
-    res.reserve(url_encoded.size());
+    size_t percent_pos = url_encoded.find('%');
+    if (percent_pos == std::string_view::npos) {
+        return std::string(url_encoded);
+    }
 
-    for (size_t i = 0; i < url_encoded.size(); ++i) {
+    std::string res;
+    res.resize(url_encoded.size());
+    size_t out_len = 0;
+
+    // Fast path: copy until first '%'
+    for (size_t i = 0; i < percent_pos; ++i) {
+        res[out_len++] = url_encoded[i];
+    }
+
+    for (size_t i = percent_pos; i < url_encoded.size(); ++i) {
         char c = url_encoded[i];
         // Special handling for percent which should be followed by two hex digits
         // representing an octet values, see RFC 3986, Section 2.1 Percent-Encoding
@@ -25,15 +36,16 @@ std::string UrlDecode(std::string_view url_encoded)
             // Only if there is no error and the pointer is set to the end of
             // the string, we can be sure both characters were valid hex
             if (ec == std::errc{} && p == url_encoded.data() + i + 3) {
-                res += static_cast<char>(decoded_value);
+                res[out_len++] = static_cast<char>(decoded_value);
                 // Next two characters are part of the percent encoding
                 i += 2;
                 continue;
             }
             // In case of invalid percent encoding, add the '%' and continue
         }
-        res += c;
+        res[out_len++] = c;
     }
 
+    res.resize(out_len);
     return res;
 }

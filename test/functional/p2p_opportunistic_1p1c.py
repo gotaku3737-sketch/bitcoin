@@ -520,7 +520,7 @@ class PackageRelayTest(BitcoinTestFramework):
         # one of the orphans was processed.
         for peer_doser in peer_doser_shared:
             peer_doser.sync_with_ping()
-        self.wait_until(lambda: any([tx.txid_hex in node.getorphantxs() for tx in shared_orphans]))
+        self.wait_until(lambda: any(tx.txid_hex in node.getorphantxs() for tx in shared_orphans))
 
         self.log.info("Send an orphan from a non-DoSy peer. Its orphan should not be evicted.")
         low_fee_parent = self.create_tx_below_mempoolminfee(self.wallet)
@@ -555,7 +555,7 @@ class PackageRelayTest(BitcoinTestFramework):
             peer_doser_batch.send_without_ping(msg_tx(tx))
 
         peer_doser_batch.sync_with_ping()
-        self.wait_until(lambda: any([tx.txid_hex in node.getorphantxs() for tx in this_batch_orphans]))
+        self.wait_until(lambda: any(tx.txid_hex in node.getorphantxs() for tx in this_batch_orphans))
 
         self.log.info("Check that orphan from normal peer still exists in orphanage")
         assert high_fee_child["txid"] in node.getorphantxs()

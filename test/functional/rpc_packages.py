@@ -182,7 +182,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         self.log.info("Testmempoolaccept with entire package, should work with children in either order")
         testres_multiple_ab = node.testmempoolaccept(rawtxs=[parent_tx["hex"], child_a_tx["hex"], child_b_tx["hex"]])
         testres_multiple_ba = node.testmempoolaccept(rawtxs=[parent_tx["hex"], child_b_tx["hex"], child_a_tx["hex"]])
-        assert all([testres["allowed"] for testres in testres_multiple_ab + testres_multiple_ba])
+        assert all(testres["allowed"] for testres in testres_multiple_ab + testres_multiple_ba)
 
         testres_single = []
         # Test accept and then submit each one individually, which should be identical to package testaccept
@@ -212,7 +212,7 @@ class RPCPackagesTest(BitcoinTestFramework):
             for _ in range(10):
                 random.shuffle(package_hex)
                 testres_multiple = node.testmempoolaccept(rawtxs=package_hex + [child_tx['hex']])
-                assert all([testres["allowed"] for testres in testres_multiple])
+                assert all(testres["allowed"] for testres in testres_multiple)
 
             testres_single = []
             # Test accept and then submit each one individually, which should be identical to package testaccept
