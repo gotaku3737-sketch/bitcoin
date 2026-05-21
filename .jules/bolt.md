@@ -31,3 +31,6 @@
 ## 2024-05-14 - Optimize UrlDecode
 **Learning:** The URL decoding path was doing character-by-character string append `+=` inside a loop which requires bounds checking and reallocation. In scenarios where URL encoding is absent or light, pre-sizing the buffer and mutating via index, combined with a `string_view::find()` fast path, provides a measurable CPU efficiency gain (3-4x faster for unencoded URLs).
 **Action:** For string building of known upper-bound size, pre-resize them and mutate via index (`str[pos++] = char`) instead of appending character-by-character.
+## 2024-05-24 - Optimize string concatenation in Base58 encoding
+**Learning:** Using `+=` to append characters in a loop for C++ strings introduces bounds-checking and reallocation overhead.
+**Action:** Pre-allocate the required string size and use iterators to write characters directly, improving performance substantially for hot encoding paths.
