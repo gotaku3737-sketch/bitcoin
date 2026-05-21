@@ -28,3 +28,12 @@
 **Vulnerability:** SQL injection potential due to using `strprintf` to construct PRAGMA statements with unsanitized user inputs.
 **Learning:** SQLite PRAGMA statements do not support standard `?` parameter binding. This requires manual string construction which is prone to injection if not done safely.
 **Prevention:** Construct PRAGMA statements using `sqlite3_mprintf` with `%w` for identifiers and `%Q` for values, then free the resulting pointer with `sqlite3_free`.
+## 2025-05-23 - [Harden Notification Command Execution]
+**Vulnerability:** Command Injection in shell-executed notifications.
+**Learning:** Functions like AlertNotify were manually sanitizing and quoting interpolated strings, which is brittle and potentially bypassable compared to standard escaping utilities.
+**Prevention:** Use ShellEscape for all data interpolation in shell commands on supported platforms, and explicitly warn against unescaped interpolation in any code path that executes commands via the shell.
+
+## 2026-05-16 - Prevent Argument Splitting in Windows Shell Executions
+**Vulnerability:** Windows cmd.exe single-quote argument injection. The safeStatus interpolation used single quotes (`'`), which cmd.exe treats as literal characters rather than string delimiters. This causes spaces in the sanitized string to be parsed as argument separators.
+**Learning:** Unlike POSIX shells, Windows cmd.exe does not support single quotes for string escaping or grouping. When using `_wsystem()` on Windows, single-quoted strings containing spaces will be split into multiple arguments, potentially altering command behavior.
+**Prevention:** Always use double quotes (`"`) when interpolating strings into Windows shell commands, or omit quoting entirely if the input is guaranteed to be safe and without spaces (like hex strings).
