@@ -37,3 +37,7 @@
 **Vulnerability:** Windows cmd.exe single-quote argument injection. The safeStatus interpolation used single quotes (`'`), which cmd.exe treats as literal characters rather than string delimiters. This causes spaces in the sanitized string to be parsed as argument separators.
 **Learning:** Unlike POSIX shells, Windows cmd.exe does not support single quotes for string escaping or grouping. When using `_wsystem()` on Windows, single-quoted strings containing spaces will be split into multiple arguments, potentially altering command behavior.
 **Prevention:** Always use double quotes (`"`) when interpolating strings into Windows shell commands, or omit quoting entirely if the input is guaranteed to be safe and without spaces (like hex strings).
+## 2024-05-18 - Missing Failure Handling in Compact Blocks
+**Vulnerability:** Ignored initialization failures (READ_STATUS_INVALID) when processing optimistic compact blocks from peers.
+**Learning:** Returning early without penalizing peers on invalid data permits misbehaving nodes to evade bans, exposing the node to denial of service or resource exhaustion risks.
+**Prevention:** Always implement explicit failure modes in catch-all error handling blocks; invalid peer data must trigger `Misbehaving()` to protect network resources.

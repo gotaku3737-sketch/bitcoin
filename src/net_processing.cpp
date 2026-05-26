@@ -4730,7 +4730,11 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 PartiallyDownloadedBlock tempBlock(&m_mempool);
                 ReadStatus status = tempBlock.InitData(cmpctblock, vExtraTxnForCompact);
                 if (status != READ_STATUS_OK) {
-                    // TODO: don't ignore failures
+                    if (status == READ_STATUS_INVALID) {
+                        Misbehaving(peer, "invalid compact block");
+                    } else if (status == READ_STATUS_FAILED) {
+                        LogDebug(BCLog::NET, "Failed to initialize partially downloaded block\n");
+                    }
                     return;
                 }
                 std::vector<CTransactionRef> dummy;
