@@ -29,9 +29,21 @@ static const std::string SAFE_CHARS[] =
 
 std::string SanitizeString(std::string_view str, int rule)
 {
+    static const auto safe_char_tables = []() {
+        std::array<std::array<bool, 256>, 4> tables{};
+        for (int i = 0; i < 4; ++i) {
+            for (char c : SAFE_CHARS[i]) {
+                tables[i][static_cast<unsigned char>(c)] = true;
+            }
+        }
+        return tables;
+    }();
+
     std::string result;
+    result.reserve(str.size());
+    const auto& table = safe_char_tables[rule];
     for (char c : str) {
-        if (SAFE_CHARS[rule].find(c) != std::string::npos) {
+        if (table[static_cast<unsigned char>(c)]) {
             result.push_back(c);
         }
     }

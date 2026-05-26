@@ -34,3 +34,6 @@
 ## 2024-05-24 - Optimize string concatenation in Base58 encoding
 **Learning:** Using `+=` to append characters in a loop for C++ strings introduces bounds-checking and reallocation overhead.
 **Action:** Pre-allocate the required string size and use iterators to write characters directly, improving performance substantially for hot encoding paths.
+## 2024-05-26 - Precompute lookup tables for character sanitization
+**Learning:** Using `std::string::find` for character filtering inside a loop results in redundant O(M) lookups. Replacing this with a precomputed static boolean array lookup reduces the complexity to O(1) and provides significant measurable speedups in core application string processing.
+**Action:** When filtering or validating strings against fixed character sets in hot paths, use a precomputed boolean array or bitset indexed by the character value instead of linear searches.
