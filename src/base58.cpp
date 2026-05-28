@@ -118,11 +118,10 @@ std::string EncodeBase58(std::span<const unsigned char> input)
     while (it != b58.end() && *it == 0)
         it++;
     // Translate the result into a string.
-    std::string str;
-    str.reserve(zeroes + (b58.end() - it));
-    str.assign(zeroes, '1');
+    std::string str(zeroes + (b58.end() - it), '1');
+    auto out_it = str.begin() + zeroes;
     while (it != b58.end())
-        str += pszBase58[*(it++)];
+        *(out_it++) = pszBase58[*(it++)];
     return str;
 }
 

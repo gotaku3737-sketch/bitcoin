@@ -118,7 +118,7 @@ class ChainTiebreaksTest(BitcoinTestFramework):
 
         # Construct two blocks building from genesis.
         start_height = node.getblockcount()
-        genesis_block = node.getblock(node.getblockhash(start_height))
+        genesis_block = node.getblockheader(node.getblockhash(start_height))
         prev_time = genesis_block["time"]
 
         for i in range(0, 2):

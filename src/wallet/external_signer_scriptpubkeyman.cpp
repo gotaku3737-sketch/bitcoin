@@ -66,9 +66,9 @@ std::string ExternalSignerScriptPubKeyMan::GetFingerprint() const
     LOCK(cs_desc_man);
     std::vector<CScript> scripts;
     FlatSigningProvider provider;
-    m_wallet_descriptor.GetDescriptor()->Expand(0, provider, scripts, provider);
+    m_wallet_descriptor.descriptor->Expand(0, provider, scripts, provider);
     for (const auto& entry : provider.origins) {
-        return HexStr(entry.second.fingerprint);
+        return HexStr(entry.second.second.fingerprint);
     }
     return "";
 }

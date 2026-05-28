@@ -4734,9 +4734,8 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                     if (status == READ_STATUS_INVALID) {
                         Misbehaving(peer, "invalid compact block");
                     } else if (status == READ_STATUS_FAILED) {
-                        LogDebug(BCLog::NET, "Optimistic compact block reconstruction failed\n");
+                        LogDebug(BCLog::NET, "Failed to initialize partially downloaded block\n");
                     }
-                    // TODO: don't ignore failures
                     return;
                 }
                 std::vector<CTransactionRef> dummy;

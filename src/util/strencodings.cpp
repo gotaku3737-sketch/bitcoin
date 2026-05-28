@@ -29,9 +29,21 @@ static const std::string SAFE_CHARS[] =
 
 std::string SanitizeString(std::string_view str, int rule)
 {
+    static const auto safe_char_tables = []() {
+        std::array<std::array<bool, 256>, 4> tables{};
+        for (int i = 0; i < 4; ++i) {
+            for (char c : SAFE_CHARS[i]) {
+                tables[i][static_cast<unsigned char>(c)] = true;
+            }
+        }
+        return tables;
+    }();
+
     std::string result;
+    result.reserve(str.size());
+    const auto& table = safe_char_tables[rule];
     for (char c : str) {
-        if (SAFE_CHARS[rule].find(c) != std::string::npos) {
+        if (table[static_cast<unsigned char>(c)]) {
             result.push_back(c);
         }
     }
@@ -100,9 +112,10 @@ std::string EncodeBase64(std::span<const unsigned char> input)
     static const char *pbase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     std::string str;
-    str.reserve(((input.size() + 2) / 3) * 4);
-    ConvertBits<8, 6, true>([&](int v) { str += pbase64[v]; }, input.begin(), input.end());
-    while (str.size() % 4) str += '=';
+    str.resize(((input.size() + 2) / 3) * 4);
+    size_t pos = 0;
+    ConvertBits<8, 6, true>([&](int v) { str[pos++] = pbase64[v]; }, input.begin(), input.end());
+    while (pos < str.size()) str[pos++] = '=';
     return str;
 }
 
@@ -146,12 +159,16 @@ std::string EncodeBase32(std::span<const unsigned char> input, bool pad)
     static const char *pbase32 = "abcdefghijklmnopqrstuvwxyz234567";
 
     std::string str;
-    str.reserve(((input.size() + 4) / 5) * 8);
-    ConvertBits<8, 5, true>([&](int v) { str += pbase32[v]; }, input.begin(), input.end());
+    size_t expected_size = ((input.size() + 4) / 5) * 8;
+    str.resize(expected_size);
+    size_t pos = 0;
+    ConvertBits<8, 5, true>([&](int v) { str[pos++] = pbase32[v]; }, input.begin(), input.end());
     if (pad) {
-        while (str.size() % 8) {
-            str += '=';
+        while (pos < expected_size) {
+            str[pos++] = '=';
         }
+    } else {
+        str.resize(pos);
     }
     return str;
 }

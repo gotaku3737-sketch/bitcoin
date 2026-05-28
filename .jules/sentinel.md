@@ -24,3 +24,20 @@
 **Vulnerability:** The error handling for compact block construction in `src/net_processing.cpp` used an explicit equality check `if (status == READ_STATUS_INVALID)` and `if (status == READ_STATUS_FAILED)`. If a new `ReadStatus` value was added, it would fall through to the block success path, improperly parsing and applying invalid/malicious data.
 **Learning:** Checking for equality of explicit failure enums causes insecure, fail-open vulnerabilities if the enum expands over time.
 **Prevention:** Instead of explicit comparisons, default to securely closing the error scope using a negated check: `if (status != READ_STATUS_OK)`.
+## 2024-05-24 - SQLite PRAGMA Parameterization
+**Vulnerability:** SQL injection potential due to using `strprintf` to construct PRAGMA statements with unsanitized user inputs.
+**Learning:** SQLite PRAGMA statements do not support standard `?` parameter binding. This requires manual string construction which is prone to injection if not done safely.
+**Prevention:** Construct PRAGMA statements using `sqlite3_mprintf` with `%w` for identifiers and `%Q` for values, then free the resulting pointer with `sqlite3_free`.
+## 2025-05-23 - [Harden Notification Command Execution]
+**Vulnerability:** Command Injection in shell-executed notifications.
+**Learning:** Functions like AlertNotify were manually sanitizing and quoting interpolated strings, which is brittle and potentially bypassable compared to standard escaping utilities.
+**Prevention:** Use ShellEscape for all data interpolation in shell commands on supported platforms, and explicitly warn against unescaped interpolation in any code path that executes commands via the shell.
+
+## 2026-05-16 - Prevent Argument Splitting in Windows Shell Executions
+**Vulnerability:** Windows cmd.exe single-quote argument injection. The safeStatus interpolation used single quotes (`'`), which cmd.exe treats as literal characters rather than string delimiters. This causes spaces in the sanitized string to be parsed as argument separators.
+**Learning:** Unlike POSIX shells, Windows cmd.exe does not support single quotes for string escaping or grouping. When using `_wsystem()` on Windows, single-quoted strings containing spaces will be split into multiple arguments, potentially altering command behavior.
+**Prevention:** Always use double quotes (`"`) when interpolating strings into Windows shell commands, or omit quoting entirely if the input is guaranteed to be safe and without spaces (like hex strings).
+## 2024-05-18 - Missing Failure Handling in Compact Blocks
+**Vulnerability:** Ignored initialization failures (READ_STATUS_INVALID) when processing optimistic compact blocks from peers.
+**Learning:** Returning early without penalizing peers on invalid data permits misbehaving nodes to evade bans, exposing the node to denial of service or resource exhaustion risks.
+**Prevention:** Always implement explicit failure modes in catch-all error handling blocks; invalid peer data must trigger `Misbehaving()` to protect network resources.
