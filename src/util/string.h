@@ -118,8 +118,16 @@ std::vector<T> Split(const std::span<const char>& sp, std::string_view separator
     std::vector<T> ret;
     auto it = sp.begin();
     auto start = it;
+
+    // Optimization: Precompute a boolean array for the separators.
+    // This converts the O(M) character search in the loop below to an O(1) array lookup.
+    std::array<bool, 256> is_sep{};
+    for (char c : separators) {
+        is_sep[static_cast<unsigned char>(c)] = true;
+    }
+
     while (it != sp.end()) {
-        if (separators.find(*it) != std::string::npos) {
+        if (is_sep[static_cast<unsigned char>(*it)]) {
             if (include_sep) {
                 ret.emplace_back(start, it + 1);
             } else {
@@ -143,7 +151,25 @@ std::vector<T> Split(const std::span<const char>& sp, std::string_view separator
 template <typename T = std::span<const char>>
 std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep = false)
 {
-    return Split<T>(sp, std::string_view{&sep, 1}, include_sep);
+    std::vector<T> ret;
+    auto it = sp.begin();
+    auto start = it;
+
+    // Optimization: Direct equality check for single-character splitting.
+    // This bypasses the overhead of array initialization seen in the string_view overload.
+    while (it != sp.end()) {
+        if (*it == sep) {
+            if (include_sep) {
+                ret.emplace_back(start, it + 1);
+            } else {
+                ret.emplace_back(start, it);
+            }
+            start = it + 1;
+        }
+        ++it;
+    }
+    ret.emplace_back(start, it);
+    return ret;
 }
 
 [[nodiscard]] inline std::vector<std::string> SplitString(std::string_view str, char sep)

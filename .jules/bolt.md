@@ -37,3 +37,6 @@
 ## 2024-05-26 - Precompute lookup tables for character sanitization
 **Learning:** Using `std::string::find` for character filtering inside a loop results in redundant O(M) lookups. Replacing this with a precomputed static boolean array lookup reduces the complexity to O(1) and provides significant measurable speedups in core application string processing.
 **Action:** When filtering or validating strings against fixed character sets in hot paths, use a precomputed boolean array or bitset indexed by the character value instead of linear searches.
+## 2026-06-25 - Optimize util::Split with precomputed table
+**Learning:** The `util::Split` function in `src/util/string.h` was using `std::string_view::find` to search for separators inside a loop. This results in an O(M) lookup for each character, which is slow for a hot path function like string splitting.
+**Action:** Precompute a boolean array of size 256 for the separators, turning the search into an O(1) array lookup. Also optimize the single-character overload to avoid the overhead of building the array.
