@@ -41,3 +41,7 @@
 **Vulnerability:** Ignored initialization failures (READ_STATUS_INVALID) when processing optimistic compact blocks from peers.
 **Learning:** Returning early without penalizing peers on invalid data permits misbehaving nodes to evade bans, exposing the node to denial of service or resource exhaustion risks.
 **Prevention:** Always implement explicit failure modes in catch-all error handling blocks; invalid peer data must trigger `Misbehaving()` to protect network resources.
+## 2024-05-24 - [State Inconsistency] Missing Error Return on Block Flush
+**Vulnerability:** The node ignored failures when flushing block files to disk in `Chainstate::FlushStateToDisk`, allowing it to proceed with flushing the coins database. This could lead to inconsistent state on restart.
+**Learning:** In critical disk I/O operations, failing to handle errors can cause cascading failures and corrupt state. Critical failures must halt progression.
+**Prevention:** Always handle failures in critical disk I/O operations (like `FlushChainstateBlockFile`) by returning `FatalError` to prevent the node from entering an inconsistent state.
