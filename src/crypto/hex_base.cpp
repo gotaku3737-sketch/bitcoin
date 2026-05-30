@@ -8,19 +8,21 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+#include <bit>
 
 namespace {
 
-using ByteAsHex = std::array<char, 2>;
-
-constexpr std::array<ByteAsHex, 256> CreateByteToHexMap()
+constexpr std::array<uint16_t, 256> CreateByteToHexMap16()
 {
     constexpr char hexmap[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-    std::array<ByteAsHex, 256> byte_to_hex{};
+    std::array<uint16_t, 256> byte_to_hex{};
     for (size_t i = 0; i < byte_to_hex.size(); ++i) {
-        byte_to_hex[i][0] = hexmap[i >> 4];
-        byte_to_hex[i][1] = hexmap[i & 15];
+        if constexpr (std::endian::native == std::endian::little) {
+            byte_to_hex[i] = (static_cast<uint16_t>(hexmap[i & 15]) << 8) | static_cast<uint16_t>(hexmap[i >> 4]);
+        } else {
+            byte_to_hex[i] = (static_cast<uint16_t>(hexmap[i >> 4]) << 8) | static_cast<uint16_t>(hexmap[i & 15]);
+        }
     }
     return byte_to_hex;
 }
@@ -30,12 +32,12 @@ constexpr std::array<ByteAsHex, 256> CreateByteToHexMap()
 std::string HexStr(const std::span<const uint8_t> s)
 {
     std::string rv(s.size() * 2, '\0');
-    static constexpr auto byte_to_hex = CreateByteToHexMap();
+    static constexpr auto byte_to_hex = CreateByteToHexMap16();
     static_assert(sizeof(byte_to_hex) == 512);
 
     char* it = rv.data();
     for (uint8_t v : s) {
-        std::memcpy(it, byte_to_hex[v].data(), 2);
+        std::memcpy(it, &byte_to_hex[v], 2);
         it += 2;
     }
 

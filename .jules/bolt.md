@@ -40,3 +40,6 @@
 ## 2026-06-25 - Optimize util::Split with precomputed table
 **Learning:** The `util::Split` function in `src/util/string.h` was using `std::string_view::find` to search for separators inside a loop. This results in an O(M) lookup for each character, which is slow for a hot path function like string splitting.
 **Action:** Precompute a boolean array of size 256 for the separators, turning the search into an O(1) array lookup. Also optimize the single-character overload to avoid the overhead of building the array.
+## 2024-05-24 - Optimize HexStr conversion
+**Learning:** Re-implementing a 2-byte memcpy from a 2-element array into a single 16-bit integer lookup map (uint16_t) combined with native endianness handling can reduce `HexStr` execution time by ~30% as it allows single 16-bit store instructions to be emitted by the compiler.
+**Action:** Keep an eye out for data packing optimizations where small array copies can be replaced with native integer types, avoiding abstraction overhead in hot paths.
