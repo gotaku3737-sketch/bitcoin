@@ -40,3 +40,6 @@
 ## 2026-06-25 - Optimize util::Split with precomputed table
 **Learning:** The `util::Split` function in `src/util/string.h` was using `std::string_view::find` to search for separators inside a loop. This results in an O(M) lookup for each character, which is slow for a hot path function like string splitting.
 **Action:** Precompute a boolean array of size 256 for the separators, turning the search into an O(1) array lookup. Also optimize the single-character overload to avoid the overhead of building the array.
+## 2024-05-31 - [Pre-pack multi-byte sequences into native integers]
+**Learning:** In C++ performance-critical paths, when mapping a value to a small multi-byte sequence, packing the characters into a single native integer and handling byte order using `std::endian::native` enables the compiler to use a single scalar store instruction, reducing execution time.
+**Action:** Pre-pack characters into a native integer (e.g., `uint16_t`) and store using `memcpy` instead of separate 8-bit stores.
