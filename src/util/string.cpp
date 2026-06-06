@@ -10,11 +10,24 @@ namespace util {
 void ReplaceAll(std::string& in_out, const std::string& search, const std::string& substitute)
 {
     if (search.empty()) return;
-    std::string::size_type pos = 0;
-    while ((pos = in_out.find(search, pos)) != std::string::npos) {
-        in_out.replace(pos, search.length(), substitute);
-        pos += substitute.length();
-    }
+    std::string::size_type pos = in_out.find(search);
+    if (pos == std::string::npos) return;
+
+    // Optimization: When we do find the string, standard string::replace has to memmove
+    // all remaining bytes for every replacement, turning this into an O(N^2) operation
+    // when replacing many occurrences in a long string. Instead, if we have multiple
+    // replacements, we build a new string.
+    std::string result;
+    result.reserve(in_out.size()); // Pre-allocate to avoid reallocations
+    std::string::size_type start = 0;
+    do {
+        result.append(in_out, start, pos - start);
+        result.append(substitute);
+        start = pos + search.length();
+        pos = in_out.find(search, start);
+    } while (pos != std::string::npos);
+    result.append(in_out, start, std::string::npos);
+    in_out = std::move(result);
 }
 
 LineReader::LineReader(std::span<const std::byte> buffer, size_t max_line_length)
