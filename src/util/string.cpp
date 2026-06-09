@@ -10,11 +10,23 @@ namespace util {
 void ReplaceAll(std::string& in_out, const std::string& search, const std::string& substitute)
 {
     if (search.empty()) return;
-    std::string::size_type pos = 0;
-    while ((pos = in_out.find(search, pos)) != std::string::npos) {
-        in_out.replace(pos, search.length(), substitute);
-        pos += substitute.length();
+
+    std::string::size_type pos = in_out.find(search);
+    if (pos == std::string::npos) return;
+
+    std::string result;
+    // Expected size assuming the number of replacements is small
+    result.reserve(in_out.size());
+
+    std::string::size_type last_pos = 0;
+    while (pos != std::string::npos) {
+        result.append(in_out, last_pos, pos - last_pos);
+        result.append(substitute);
+        last_pos = pos + search.length();
+        pos = in_out.find(search, last_pos);
     }
+    result.append(in_out, last_pos, in_out.length() - last_pos);
+    in_out = std::move(result);
 }
 
 LineReader::LineReader(std::span<const std::byte> buffer, size_t max_line_length)
