@@ -10,23 +10,24 @@ namespace util {
 void ReplaceAll(std::string& in_out, const std::string& search, const std::string& substitute)
 {
     if (search.empty()) return;
+
     std::string::size_type pos = in_out.find(search);
     if (pos == std::string::npos) return;
 
-    // Optimization: When we do find the string, standard string::replace has to memmove
-    // all remaining bytes for every replacement, turning this into an O(N^2) operation
-    // when replacing many occurrences in a long string. Instead, if we have multiple
-    // replacements, we build a new string.
     std::string result;
-    result.reserve(in_out.size()); // Pre-allocate to avoid reallocations
-    std::string::size_type start = 0;
-    do {
-        result.append(in_out, start, pos - start);
+    // Reserve at least the original size to avoid multiple initial reallocations.
+    // We allow standard amortized growth if the string expands significantly.
+    result.reserve(in_out.size());
+
+    std::string::size_type last_pos = 0;
+    while (pos != std::string::npos) {
+        result.append(in_out, last_pos, pos - last_pos);
         result.append(substitute);
-        start = pos + search.length();
-        pos = in_out.find(search, start);
-    } while (pos != std::string::npos);
-    result.append(in_out, start, std::string::npos);
+        last_pos = pos + search.length();
+        pos = in_out.find(search, last_pos);
+    }
+    result.append(in_out, last_pos, in_out.length() - last_pos);
+
     in_out = std::move(result);
 }
 
