@@ -45,3 +45,8 @@
 **Vulnerability:** The node ignored failures when flushing block files to disk in `Chainstate::FlushStateToDisk`, allowing it to proceed with flushing the coins database. This could lead to inconsistent state on restart.
 **Learning:** In critical disk I/O operations, failing to handle errors can cause cascading failures and corrupt state. Critical failures must halt progression.
 **Prevention:** Always handle failures in critical disk I/O operations (like `FlushChainstateBlockFile`) by returning `FatalError` to prevent the node from entering an inconsistent state.
+
+## 2025-01-20 - Fail-Open Vulnerability in ReadStatus Enum Handling
+**Vulnerability:** Explicit equality checks for enum error states (e.g., `if (status == READ_STATUS_INVALID)`) in block encoding.
+**Learning:** Checking for explicit error states instead of negating success or defaulting to error handling causes a fail-open behavior if new error enum values are added.
+**Prevention:** Use a default `else` block to securely handle all unrecognized or new failure modes by treating them as severe errors (e.g., `Misbehaving`).
