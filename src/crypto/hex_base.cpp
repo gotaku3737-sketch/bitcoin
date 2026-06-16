@@ -10,7 +10,6 @@
 #include <cstring>
 #include <cstdint>
 #include <string>
-#include <bit>
 
 namespace {
 
@@ -36,7 +35,7 @@ constexpr std::array<ByteAsHex, 256> CreateByteToHexMap()
 std::string HexStr(const std::span<const uint8_t> s)
 {
     std::string rv(s.size() * 2, '\0');
-    static constexpr auto byte_to_hex = CreateByteToHexMap16();
+    static constexpr auto byte_to_hex = CreateByteToHexMap();
     static_assert(sizeof(byte_to_hex) == 512);
 
     char* it = rv.data();
