@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cstdint>
 #include <string>
+#include <bit>
 
 namespace {
 
@@ -19,7 +20,7 @@ constexpr std::array<ByteAsHex, 256> CreateByteToHexMap()
 {
     constexpr char hexmap[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-    std::array<ByteAsHex, 256> byte_to_hex{};
+    std::array<uint16_t, 256> byte_to_hex{};
     for (size_t i = 0; i < byte_to_hex.size(); ++i) {
         if constexpr (std::endian::native == std::endian::little) {
             byte_to_hex[i] = (uint16_t(hexmap[i & 15]) << 8) | uint16_t(hexmap[i >> 4]);
@@ -35,7 +36,7 @@ constexpr std::array<ByteAsHex, 256> CreateByteToHexMap()
 std::string HexStr(const std::span<const uint8_t> s)
 {
     std::string rv(s.size() * 2, '\0');
-    static constexpr auto byte_to_hex = CreateByteToHexMap();
+    static constexpr auto byte_to_hex = CreateByteToHexMap16();
     static_assert(sizeof(byte_to_hex) == 512);
 
     char* it = rv.data();
