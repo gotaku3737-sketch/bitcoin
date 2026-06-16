@@ -3486,10 +3486,7 @@ void PeerManagerImpl::ProcessCompactBlockTxns(CNode& pfrom, Peer& peer, const Bl
         ReadStatus status = partialBlock.FillBlock(*pblock, block_transactions.txn,
                                                    /*segwit_active=*/DeploymentActiveAfter(prev_block, m_chainman, Consensus::DEPLOYMENT_SEGWIT));
         if (status != READ_STATUS_OK) {
-            if (status == READ_STATUS_INVALID) {
-                RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
-                Misbehaving(peer, "invalid compact block/non-matching block transactions");
-            } else if (status == READ_STATUS_FAILED) {
+            if (status == READ_STATUS_FAILED) {
                 if (first_in_flight) {
                     // Might have collided, fall back to getdata now :(
                     // We keep the failed partialBlock to disallow processing another compact block announcement from the same
@@ -3502,6 +3499,9 @@ void PeerManagerImpl::ProcessCompactBlockTxns(CNode& pfrom, Peer& peer, const Bl
                     RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId());
                     LogDebug(BCLog::NET, "Peer %d sent us a compact block but it failed to reconstruct, waiting on first download to complete\n", pfrom.GetId());
                 }
+            } else {
+                RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
+                Misbehaving(peer, "invalid compact block/non-matching block transactions");
             }
             return;
         }
@@ -4679,10 +4679,7 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 PartiallyDownloadedBlock& partialBlock = *(*queuedBlockIt)->partialBlock;
                 ReadStatus status = partialBlock.InitData(cmpctblock, vExtraTxnForCompact);
                 if (status != READ_STATUS_OK) {
-                    if (status == READ_STATUS_INVALID) {
-                        RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
-                        Misbehaving(peer, "invalid compact block");
-                    } else if (status == READ_STATUS_FAILED) {
+                    if (status == READ_STATUS_FAILED) {
                         if (first_in_flight)  {
                             // Duplicate txindexes, the block is now in-flight, so just request it
                             std::vector<CInv> vInv(1);
@@ -4692,6 +4689,9 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                             // Give up for this peer and wait for other peer(s)
                             RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId());
                         }
+                    } else {
+                        RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
+                        Misbehaving(peer, "invalid compact block");
                     }
                     return;
                 }
@@ -4731,10 +4731,10 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 PartiallyDownloadedBlock tempBlock(&m_mempool);
                 ReadStatus status = tempBlock.InitData(cmpctblock, vExtraTxnForCompact);
                 if (status != READ_STATUS_OK) {
-                    if (status == READ_STATUS_INVALID) {
-                        Misbehaving(peer, "invalid compact block");
-                    } else if (status == READ_STATUS_FAILED) {
+                    if (status == READ_STATUS_FAILED) {
                         LogDebug(BCLog::NET, "Failed to initialize partially downloaded block\n");
+                    } else {
+                        Misbehaving(peer, "invalid compact block");
                     }
                     return;
                 }
