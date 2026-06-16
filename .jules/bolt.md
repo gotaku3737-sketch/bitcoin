@@ -43,6 +43,7 @@
 ## 2024-05-31 - [Pre-pack multi-byte sequences into native integers]
 **Learning:** In C++ performance-critical paths, when mapping a value to a small multi-byte sequence, packing the characters into a single native integer and handling byte order using `std::endian::native` enables the compiler to use a single scalar store instruction, reducing execution time.
 **Action:** Pre-pack characters into a native integer (e.g., `uint16_t`) and store using `memcpy` instead of separate 8-bit stores.
-## 2024-05-24 - Optimize ReplaceAll with O(N) allocation
-**Learning:** Calling `std::string::replace` repeatedly within a loop creates an O(N^2) bottleneck because it causes repeated `memmove` operations for the suffix.
-**Action:** When performing multiple replacements in a string, build the result iteratively in a new string, optionally using `reserve()`, and return or `std::move()` the final string.
+
+## 2024-06-10 - O(N^2) string replace inside ReplaceAll
+**Learning:** Using std::string::replace inside a while loop causes O(N^2) memory operations because it has to shift the rest of the string on every replacement.
+**Action:** Pre-allocate a new string with reserve() and construct the result using append() to achieve O(N) complexity for multiple substitutions.

@@ -11,19 +11,22 @@ void ReplaceAll(std::string& in_out, const std::string& search, const std::strin
 {
     if (search.empty()) return;
 
-    std::string result;
-    std::string::size_type pos = in_out.find(search, 0);
+    std::string::size_type pos = in_out.find(search);
     if (pos == std::string::npos) return;
 
+    std::string result;
+    // Reserve at least the original size to avoid multiple initial reallocations.
+    // We allow standard amortized growth if the string expands significantly.
     result.reserve(in_out.size());
-    std::string::size_type next_pos = 0;
+
+    std::string::size_type last_pos = 0;
     while (pos != std::string::npos) {
-        result.append(in_out, next_pos, pos - next_pos);
+        result.append(in_out, last_pos, pos - last_pos);
         result.append(substitute);
-        next_pos = pos + search.length();
-        pos = in_out.find(search, next_pos);
+        last_pos = pos + search.length();
+        pos = in_out.find(search, last_pos);
     }
-    result.append(in_out, next_pos, in_out.length() - next_pos);
+    result.append(in_out, last_pos, in_out.length() - last_pos);
 
     in_out = std::move(result);
 }
