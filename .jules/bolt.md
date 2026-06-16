@@ -40,6 +40,10 @@
 ## 2026-06-25 - Optimize util::Split with precomputed table
 **Learning:** The `util::Split` function in `src/util/string.h` was using `std::string_view::find` to search for separators inside a loop. This results in an O(M) lookup for each character, which is slow for a hot path function like string splitting.
 **Action:** Precompute a boolean array of size 256 for the separators, turning the search into an O(1) array lookup. Also optimize the single-character overload to avoid the overhead of building the array.
-## 2024-05-24 - Optimize HexStr conversion
-**Learning:** Re-implementing a 2-byte memcpy from a 2-element array into a single 16-bit integer lookup map (uint16_t) combined with native endianness handling can reduce `HexStr` execution time by ~30% as it allows single 16-bit store instructions to be emitted by the compiler.
-**Action:** Keep an eye out for data packing optimizations where small array copies can be replaced with native integer types, avoiding abstraction overhead in hot paths.
+## 2024-05-31 - [Pre-pack multi-byte sequences into native integers]
+**Learning:** In C++ performance-critical paths, when mapping a value to a small multi-byte sequence, packing the characters into a single native integer and handling byte order using `std::endian::native` enables the compiler to use a single scalar store instruction, reducing execution time.
+**Action:** Pre-pack characters into a native integer (e.g., `uint16_t`) and store using `memcpy` instead of separate 8-bit stores.
+
+## 2024-06-10 - O(N^2) string replace inside ReplaceAll
+**Learning:** Using std::string::replace inside a while loop causes O(N^2) memory operations because it has to shift the rest of the string on every replacement.
+**Action:** Pre-allocate a new string with reserve() and construct the result using append() to achieve O(N) complexity for multiple substitutions.
