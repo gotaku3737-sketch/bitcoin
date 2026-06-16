@@ -15,7 +15,8 @@ void ReplaceAll(std::string& in_out, const std::string& search, const std::strin
     if (pos == std::string::npos) return;
 
     std::string result;
-    // Expected size assuming the number of replacements is small
+    // Reserve at least the original size to avoid multiple initial reallocations.
+    // We allow standard amortized growth if the string expands significantly.
     result.reserve(in_out.size());
 
     std::string::size_type last_pos = 0;
@@ -26,6 +27,7 @@ void ReplaceAll(std::string& in_out, const std::string& search, const std::strin
         pos = in_out.find(search, last_pos);
     }
     result.append(in_out, last_pos, in_out.length() - last_pos);
+
     in_out = std::move(result);
 }
 
