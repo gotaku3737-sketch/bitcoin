@@ -49,3 +49,8 @@
 **Vulnerability:** Switch-like enum checks on `ReadStatus` without a default failure branch allowed unrecognized error states to return silently instead of triggering `Misbehaving()`.
 **Learning:** Explicitly checking for all known error states and failing silently otherwise creates fail-open vulnerabilities if the enum expands over time.
 **Prevention:** Use a negated check against the success state and ensure the inner logic uses a default `else` block to securely handle all unrecognized failure modes as severe errors.
+
+## 2024-06-16 - [DoS] Fix fail-open enum handling in net_processing.cpp
+**Vulnerability:** Explicit switch-like checks on the `ReadStatus` enum (e.g. `if (status == READ_STATUS_OK)`) failed to penalize peers when returning unexpected values, leading to a fail-open DoS vulnerability.
+**Learning:** Checking for equality of explicit failure enums causes insecure, fail-open vulnerabilities if the enum expands over time. A negated success check is necessary to ensure new unhandled states trigger safe, closed behavior.
+**Prevention:** Default to securely closing the error scope using a negated check: `if (status != READ_STATUS_OK)`. Ensure inner scopes correctly handle `READ_STATUS_FAILED` separately from explicitly malicious states that must invoke `Misbehaving`.

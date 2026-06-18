@@ -4742,7 +4742,11 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 const CBlockIndex* prev_block{Assume(m_chainman.m_blockman.LookupBlockIndex(cmpctblock.header.hashPrevBlock))};
                 status = tempBlock.FillBlock(*pblock, dummy,
                                              /*segwit_active=*/DeploymentActiveAfter(prev_block, m_chainman, Consensus::DEPLOYMENT_SEGWIT));
-                if (status == READ_STATUS_OK) {
+                if (status != READ_STATUS_OK) {
+                    if (status != READ_STATUS_FAILED) {
+                        Misbehaving(peer, "invalid compact block");
+                    }
+                } else {
                     fBlockReconstructed = true;
                 }
             }
