@@ -47,3 +47,6 @@
 ## 2024-06-10 - O(N^2) string replace inside ReplaceAll
 **Learning:** Using std::string::replace inside a while loop causes O(N^2) memory operations because it has to shift the rest of the string on every replacement.
 **Action:** Pre-allocate a new string with reserve() and construct the result using append() to achieve O(N) complexity for multiple substitutions.
+## 2024-05-15 - Array lookup cache efficiency
+**Learning:** Using a boolean array lookup for `IsHex` proved to be slower than the original `HexDigit` check, because `HexDigit` relies on an array `p_util_hexdigit` that is a contiguous 256-element array of signed char and likely fits perfectly into cache.
+**Action:** Always benchmark array lookup vs existing static array lookups.
