@@ -50,3 +50,6 @@
 ## 2024-05-15 - Array lookup cache efficiency
 **Learning:** Using a boolean array lookup for `IsHex` proved to be slower than the original `HexDigit` check, because `HexDigit` relies on an array `p_util_hexdigit` that is a contiguous 256-element array of signed char and likely fits perfectly into cache.
 **Action:** Always benchmark array lookup vs existing static array lookups.
+## 2026-06-25 - Optimize TrimStringView with std::string_view library functions
+**Learning:** Manual loop-based string processing with `std::array<bool, 256>` is significantly slower than highly-optimized standard library implementations like `find_first_not_of` and `find_last_not_of` for string view operations.
+**Action:** When trimming strings against a set of characters, always prefer standard library search functions like `find_first_not_of` and `find_last_not_of` over manual loops and lookup arrays.
