@@ -184,24 +184,11 @@ std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep
 
 [[nodiscard]] inline std::string_view TrimStringView(std::string_view str, std::string_view pattern = " \f\n\r\t\v")
 {
-    std::array<bool, 256> is_sep{};
-    for (char c : pattern) {
-        is_sep[static_cast<unsigned char>(c)] = true;
-    }
-
-    std::string::size_type front = 0;
-    while (front < str.size() && is_sep[static_cast<unsigned char>(str[front])]) {
-        ++front;
-    }
-    if (front == str.size()) {
+    std::string::size_type front = str.find_first_not_of(pattern);
+    if (front == std::string::npos) {
         return {};
     }
-
-    std::string::size_type end = str.size() - 1;
-    while (end > front && is_sep[static_cast<unsigned char>(str[end])]) {
-        --end;
-    }
-
+    std::string::size_type end = str.find_last_not_of(pattern);
     return str.substr(front, end - front + 1);
 }
 
