@@ -4743,8 +4743,11 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 status = tempBlock.FillBlock(*pblock, dummy,
                                              /*segwit_active=*/DeploymentActiveAfter(prev_block, m_chainman, Consensus::DEPLOYMENT_SEGWIT));
                 if (status != READ_STATUS_OK) {
-                    if (status != READ_STATUS_FAILED) {
+                    if (status == READ_STATUS_FAILED) {
+                        // Wait for full block or other peers
+                    } else {
                         Misbehaving(peer, "invalid compact block");
+                        return;
                     }
                 } else {
                     fBlockReconstructed = true;
