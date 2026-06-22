@@ -185,10 +185,12 @@ std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep
 [[nodiscard]] inline std::string_view TrimStringView(std::string_view str, std::string_view pattern = " \f\n\r\t\v")
 {
     std::string::size_type front = str.find_first_not_of(pattern);
-    if (front == std::string_view::npos) {
+    if (front == std::string::npos) {
         return {};
     }
+
     std::string::size_type end = str.find_last_not_of(pattern);
+
     return str.substr(front, end - front + 1);
 }
 
