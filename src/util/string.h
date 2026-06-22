@@ -188,7 +188,9 @@ std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep
     if (front == std::string::npos) {
         return {};
     }
+
     std::string::size_type end = str.find_last_not_of(pattern);
+
     return str.substr(front, end - front + 1);
 }
 
