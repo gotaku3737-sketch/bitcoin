@@ -54,3 +54,7 @@
 **Vulnerability:** Explicit switch-like checks on the `ReadStatus` enum (e.g. `if (status == READ_STATUS_OK)`) failed to penalize peers when returning unexpected values, leading to a fail-open DoS vulnerability.
 **Learning:** Checking for equality of explicit failure enums causes insecure, fail-open vulnerabilities if the enum expands over time. A negated success check is necessary to ensure new unhandled states trigger safe, closed behavior.
 **Prevention:** Default to securely closing the error scope using a negated check: `if (status != READ_STATUS_OK)`. Ensure inner scopes correctly handle `READ_STATUS_FAILED` separately from explicitly malicious states that must invoke `Misbehaving`.
+## 2024-06-21 - [Fix fail-open vulnerability in ReadStatus handling]
+**Vulnerability:** Missing default `else` block and missing early `return` for unrecognized `ReadStatus` enum states, potentially leading to fail-open vulnerabilities.
+**Learning:** When handling enum-based status codes in C++, explicit equality checks or missing default handlers for error conditions can cause vulnerabilities if the enum expands.
+**Prevention:** Use a negated check against the success state and ensure the inner logic uses a default `else` block with an early `return` to securely handle all unrecognized failure modes.
