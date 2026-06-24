@@ -53,3 +53,7 @@
 ## 2026-06-22 - Optimize TrimStringView
 **Learning:** Initializing a 256-element std::array on every function call for string processing in C++ incurs measurable overhead, especially for short strings or frequent calls. std::string_view's find_first_not_of and find_last_not_of are highly optimized and bypass this per-call initialization.
 **Action:** Use standard library string_view algorithms like find_first_not_of/find_last_not_of instead of manual loops with per-call boolean lookup array initializations for optimal string filtering performance.
+
+## 2026-06-24 - O(1) Early Returns for IsHex
+**Learning:** The previous implementation of `IsHex` in `src/util/strencodings.cpp` performed string length and parity checks after fully traversing the string. This meant odd-length or empty strings unnecessarily traversed all their characters before being rejected.
+**Action:** Always check invariant properties like length constraints before performing O(N) traversals to allow for early exits and O(1) rejection.

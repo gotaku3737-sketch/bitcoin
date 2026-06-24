@@ -52,10 +52,11 @@ std::string SanitizeString(std::string_view str, int rule)
 
 bool IsHex(std::string_view str)
 {
+    if (str.size() == 0 || str.size() % 2 != 0) return false;
     for (char c : str) {
         if (HexDigit(c) < 0) return false;
     }
-    return (str.size() > 0) && (str.size()%2 == 0);
+    return true;
 }
 
 template <typename Byte>
