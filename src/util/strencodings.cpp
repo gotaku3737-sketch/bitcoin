@@ -219,7 +219,10 @@ std::optional<std::vector<unsigned char>> DecodeBase32(std::string_view str)
 std::string FormatParagraph(std::string_view in, size_t width, size_t indent)
 {
     assert(width >= indent);
-    std::stringstream out;
+    // Performance optimization: Avoid std::stringstream formatting overhead and reallocation
+    // by pre-allocating a std::string and using direct append operations.
+    std::string out;
+    out.reserve(in.size() + in.size() / width + 2);
     size_t ptr = 0;
     size_t indented = 0;
     while (ptr < in.size())
@@ -231,7 +234,7 @@ std::string FormatParagraph(std::string_view in, size_t width, size_t indent)
         const size_t linelen = lineend - ptr;
         const size_t rem_width = width - indented;
         if (linelen <= rem_width) {
-            out << in.substr(ptr, linelen + 1);
+            out.append(in.substr(ptr, linelen + 1));
             ptr = lineend + 1;
             indented = 0;
         } else {
@@ -241,21 +244,22 @@ std::string FormatParagraph(std::string_view in, size_t width, size_t indent)
                 finalspace = in.find_first_of("\n ", ptr);
                 if (finalspace == std::string::npos) {
                     // End of the string, just add it and break
-                    out << in.substr(ptr);
+                    out.append(in.substr(ptr));
                     break;
                 }
             }
-            out << in.substr(ptr, finalspace - ptr) << "\n";
+            out.append(in.substr(ptr, finalspace - ptr));
+            out.push_back('\n');
             if (in[finalspace] == '\n') {
                 indented = 0;
             } else if (indent) {
-                out << std::string(indent, ' ');
+                out.append(indent, ' ');
                 indented = indent;
             }
             ptr = finalspace + 1;
         }
     }
-    return out.str();
+    return out;
 }
 
 /** Upper bound for mantissa.
