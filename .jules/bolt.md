@@ -53,3 +53,6 @@
 ## 2026-06-22 - Optimize TrimStringView
 **Learning:** Initializing a 256-element std::array on every function call for string processing in C++ incurs measurable overhead, especially for short strings or frequent calls. std::string_view's find_first_not_of and find_last_not_of are highly optimized and bypass this per-call initialization.
 **Action:** Use standard library string_view algorithms like find_first_not_of/find_last_not_of instead of manual loops with per-call boolean lookup array initializations for optimal string filtering performance.
+## 2024-05-18 - Early return for string length validation
+**Learning:** Functions that validate strings based on both character content and length constraints (like checking if it represents a valid hex sequence) often iterate over the entire string first. If the length constraints (e.g. must be even length) fail, the full iteration was computationally wasteful.
+**Action:** When a string validation function has cheap length or empty-state constraints, check them upfront before performing expensive character-by-character iteration. This provides an O(1) early rejection path.
