@@ -52,10 +52,13 @@ std::string SanitizeString(std::string_view str, int rule)
 
 bool IsHex(std::string_view str)
 {
+    // Optimization: check length and empty state upfront (O(1)) instead of at the end.
+    // This allows early rejection of invalid length strings without scanning the entire string.
+    if (str.empty() || str.size() % 2 != 0) return false;
     for (char c : str) {
         if (HexDigit(c) < 0) return false;
     }
-    return (str.size() > 0) && (str.size()%2 == 0);
+    return true;
 }
 
 template <typename Byte>
