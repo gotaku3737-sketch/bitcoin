@@ -53,3 +53,6 @@
 ## 2026-06-22 - Optimize TrimStringView
 **Learning:** Initializing a 256-element std::array on every function call for string processing in C++ incurs measurable overhead, especially for short strings or frequent calls. std::string_view's find_first_not_of and find_last_not_of are highly optimized and bypass this per-call initialization.
 **Action:** Use standard library string_view algorithms like find_first_not_of/find_last_not_of instead of manual loops with per-call boolean lookup array initializations for optimal string filtering performance.
+## 2024-05-18 - Optimize FormatParagraph
+**Learning:** `FormatParagraph` was constructing its result string using `std::stringstream`, which introduces overhead from dynamic reallocation and virtual function calls. Using a pre-allocated `std::string` with `reserve` and `append` avoids this overhead.
+**Action:** For simple string constructions, especially those that can precalculate an upper bound for `reserve()`, always prefer `std::string::append` over `std::stringstream`.
