@@ -3723,22 +3723,24 @@ void PeerManagerImpl::ProcessCompactBlockTxns(CNode& pfrom, Peer& peer, const Bl
         const CBlockIndex* prev_block{Assume(m_chainman.m_blockman.LookupBlockIndex(partialBlock.header.hashPrevBlock))};
         ReadStatus status = partialBlock.FillBlock(*pblock, block_transactions.txn,
                                                    /*segwit_active=*/DeploymentActiveAfter(prev_block, m_chainman, Consensus::DEPLOYMENT_SEGWIT));
-        if (status == READ_STATUS_INVALID) {
-            RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
-            Misbehaving(peer, "invalid compact block/non-matching block transactions");
-            return;
-        } else if (status == READ_STATUS_FAILED) {
-            if (first_in_flight) {
-                // Might have collided, fall back to getdata now :(
-                // We keep the failed partialBlock to disallow processing another compact block announcement from the same
-                // peer for the same block. We let the full block download below continue under the same m_downloading_since
-                // timer.
-                std::vector<CInv> invs;
-                invs.emplace_back(MSG_BLOCK | GetFetchFlags(peer), block_transactions.blockhash);
-                MakeAndPushMessage(pfrom, NetMsgType::GETDATA, invs);
+        if (status != READ_STATUS_OK) {
+            if (status == READ_STATUS_FAILED) {
+                if (first_in_flight) {
+                    // Might have collided, fall back to getdata now :(
+                    // We keep the failed partialBlock to disallow processing another compact block announcement from the same
+                    // peer for the same block. We let the full block download below continue under the same m_downloading_since
+                    // timer.
+                    std::vector<CInv> invs;
+                    invs.emplace_back(MSG_BLOCK | GetFetchFlags(peer), block_transactions.blockhash);
+                    MakeAndPushMessage(pfrom, NetMsgType::GETDATA, invs);
+                } else {
+                    RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId());
+                    LogDebug(BCLog::NET, "Peer %d sent us a compact block but it failed to reconstruct, waiting on first download to complete\n", pfrom.GetId());
+                    return;
+                }
             } else {
-                RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId());
-                LogDebug(BCLog::NET, "Peer %d sent us a compact block but it failed to reconstruct, waiting on first download to complete\n", pfrom.GetId());
+                RemoveBlockRequest(block_transactions.blockhash, pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
+                Misbehaving(peer, "invalid compact block/non-matching block transactions");
                 return;
             }
         } else {
@@ -4914,21 +4916,23 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
 
                 PartiallyDownloadedBlock& partialBlock = *(*queuedBlockIt)->partialBlock;
                 ReadStatus status = partialBlock.InitData(cmpctblock, vExtraTxnForCompact);
-                if (status == READ_STATUS_INVALID) {
-                    RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
-                    Misbehaving(peer, "invalid compact block");
-                    return;
-                } else if (status == READ_STATUS_FAILED) {
-                    if (first_in_flight)  {
-                        // Duplicate txindexes, the block is now in-flight, so just request it
-                        std::vector<CInv> vInv(1);
-                        vInv[0] = CInv(MSG_BLOCK | GetFetchFlags(peer), blockhash);
-                        MakeAndPushMessage(pfrom, NetMsgType::GETDATA, vInv);
+                if (status != READ_STATUS_OK) {
+                    if (status == READ_STATUS_FAILED) {
+                        if (first_in_flight)  {
+                            // Duplicate txindexes, the block is now in-flight, so just request it
+                            std::vector<CInv> vInv(1);
+                            vInv[0] = CInv(MSG_BLOCK | GetFetchFlags(peer), blockhash);
+                            MakeAndPushMessage(pfrom, NetMsgType::GETDATA, vInv);
+                        } else {
+                            // Give up for this peer and wait for other peer(s)
+                            RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId());
+                        }
+                        return;
                     } else {
-                        // Give up for this peer and wait for other peer(s)
-                        RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId());
+                        RemoveBlockRequest(pindex->GetBlockHash(), pfrom.GetId()); // Reset in-flight state in case Misbehaving does not result in a disconnect
+                        Misbehaving(peer, "invalid compact block");
+                        return;
                     }
-                    return;
                 }
 
                 BlockTransactionsRequest req;
