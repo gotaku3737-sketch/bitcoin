@@ -10,6 +10,7 @@
 #include <util/check.h>
 #include <util/overflow.h>
 
+#include <array>
 #include <limits>
 #include <optional>
 #include <sstream>
@@ -18,19 +19,28 @@
 
 static const std::string CHARS_ALPHA_NUM = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-static const std::string SAFE_CHARS[] =
+static std::array<bool, 256> BuildSafeCharsArray(std::string_view safe_chars) {
+    std::array<bool, 256> arr{};
+    for (char c : safe_chars) {
+        arr[static_cast<unsigned char>(c)] = true;
+    }
+    return arr;
+}
+
+static const std::array<bool, 256> SAFE_CHARS[] =
 {
-    CHARS_ALPHA_NUM + " .,;-_/:?@()", // SAFE_CHARS_DEFAULT
-    CHARS_ALPHA_NUM + " .,;-_?@", // SAFE_CHARS_UA_COMMENT
-    CHARS_ALPHA_NUM + ".-_", // SAFE_CHARS_FILENAME
-    CHARS_ALPHA_NUM + "!*'();:@&=+$,/?#[]-_.~%", // SAFE_CHARS_URI
+    BuildSafeCharsArray(CHARS_ALPHA_NUM + " .,;-_/:?@()"), // SAFE_CHARS_DEFAULT
+    BuildSafeCharsArray(CHARS_ALPHA_NUM + " .,;-_?@"), // SAFE_CHARS_UA_COMMENT
+    BuildSafeCharsArray(CHARS_ALPHA_NUM + ".-_"), // SAFE_CHARS_FILENAME
+    BuildSafeCharsArray(CHARS_ALPHA_NUM + "!*'();:@&=+$,/?#[]-_.~%"), // SAFE_CHARS_URI
 };
 
 std::string SanitizeString(std::string_view str, int rule)
 {
     std::string result;
+    result.reserve(str.size());
     for (char c : str) {
-        if (SAFE_CHARS[rule].find(c) != std::string::npos) {
+        if (SAFE_CHARS[rule][static_cast<unsigned char>(c)]) {
             result.push_back(c);
         }
     }
