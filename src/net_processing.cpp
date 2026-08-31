@@ -4970,8 +4970,12 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                 PartiallyDownloadedBlock tempBlock(&m_mempool);
                 ReadStatus status = tempBlock.InitData(cmpctblock, vExtraTxnForCompact);
                 if (status != READ_STATUS_OK) {
-                    // TODO: don't ignore failures
-                    return;
+                    if (status == READ_STATUS_FAILED) {
+                        return;
+                    } else {
+                        Misbehaving(peer, "invalid compact block");
+                        return;
+                    }
                 }
                 std::vector<CTransactionRef> dummy;
                 const CBlockIndex* prev_block{Assume(m_chainman.m_blockman.LookupBlockIndex(cmpctblock.header.hashPrevBlock))};
@@ -4979,6 +4983,8 @@ void PeerManagerImpl::ProcessMessage(Peer& peer, CNode& pfrom, const std::string
                                              /*segwit_active=*/DeploymentActiveAfter(prev_block, m_chainman, Consensus::DEPLOYMENT_SEGWIT));
                 if (status == READ_STATUS_OK) {
                     fBlockReconstructed = true;
+                } else if (status != READ_STATUS_FAILED) {
+                    Misbehaving(peer, "invalid compact block/non-matching block transactions");
                 }
             }
         } else {
