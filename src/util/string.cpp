@@ -14,7 +14,19 @@ namespace util {
 void ReplaceAll(std::string& in_out, const std::string& search, const std::string& substitute)
 {
     if (search.empty()) return;
-    in_out = std::regex_replace(in_out, std::regex(search), substitute);
+    // Pre-allocate and use append() to avoid the overhead of std::regex_replace
+    // and achieve O(N) complexity for string replacements.
+    std::string result;
+    result.reserve(in_out.size());
+    size_t pos = 0;
+    size_t last_pos = 0;
+    while ((pos = in_out.find(search, last_pos)) != std::string::npos) {
+        result.append(in_out, last_pos, pos - last_pos);
+        result.append(substitute);
+        last_pos = pos + search.size();
+    }
+    result.append(in_out, last_pos, in_out.size() - last_pos);
+    in_out = std::move(result);
 }
 
 LineReader::LineReader(std::string_view str, size_t max_line_length)
