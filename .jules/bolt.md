@@ -5,3 +5,7 @@
 ## 2026-08-30 - Inefficient string replacement in loops
 **Learning:** In C++, calling `std::string::replace` or `std::regex_replace` inside a loop or string for multiple substitutions causes an O(N^2) performance bottleneck or high regex overhead. To achieve O(N) complexity and fast string operations, pre-allocate a new string with `reserve()` and construct the result using `append()`.
 **Action:** Replace `std::regex_replace` with a manual search-and-replace algorithm using `find()`, `reserve()`, and `append()` for simple string substitutions.
+
+## 2026-08-30 - Optimize character searches using precomputed boolean arrays
+**Learning:** In C++ core code, when filtering or validating strings against fixed character sets in hot paths, replacing linear string searches (like `std::string::find`) with a precomputed static boolean array lookup (e.g., `std::array<bool, 256>`) converts O(M) lookups to O(1) and significantly improves performance.
+**Action:** Use a precomputed static boolean array lookup for string character searches against fixed character sets. Ensure characters are cast to `unsigned char` before indexing to prevent out-of-bounds access for negative values. Provide a specialized overload or conditional branch for single-character lookups (e.g., direct equality check `*it == sep`) to avoid the array initialization overhead for trivial cases.

@@ -121,16 +121,36 @@ std::vector<T> Split(const std::span<const char>& sp, std::string_view separator
     std::vector<T> ret;
     auto it = sp.begin();
     auto start = it;
-    while (it != sp.end()) {
-        if (separators.find(*it) != std::string::npos) {
-            if (include_sep) {
-                ret.emplace_back(start, it + 1);
-            } else {
-                ret.emplace_back(start, it);
+
+    if (separators.size() == 1) {
+        const char sep = separators[0];
+        while (it != sp.end()) {
+            if (*it == sep) {
+                if (include_sep) {
+                    ret.emplace_back(start, it + 1);
+                } else {
+                    ret.emplace_back(start, it);
+                }
+                start = it + 1;
             }
-            start = it + 1;
+            ++it;
         }
-        ++it;
+    } else {
+        std::array<bool, 256> is_sep{};
+        for (char c : separators) {
+            is_sep[static_cast<unsigned char>(c)] = true;
+        }
+        while (it != sp.end()) {
+            if (is_sep[static_cast<unsigned char>(*it)]) {
+                if (include_sep) {
+                    ret.emplace_back(start, it + 1);
+                } else {
+                    ret.emplace_back(start, it);
+                }
+                start = it + 1;
+            }
+            ++it;
+        }
     }
     ret.emplace_back(start, it);
     return ret;
@@ -146,7 +166,22 @@ std::vector<T> Split(const std::span<const char>& sp, std::string_view separator
 template <typename T = std::span<const char>>
 std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep = false)
 {
-    return Split<T>(sp, std::string_view{&sep, 1}, include_sep);
+    std::vector<T> ret;
+    auto it = sp.begin();
+    auto start = it;
+    while (it != sp.end()) {
+        if (*it == sep) {
+            if (include_sep) {
+                ret.emplace_back(start, it + 1);
+            } else {
+                ret.emplace_back(start, it);
+            }
+            start = it + 1;
+        }
+        ++it;
+    }
+    ret.emplace_back(start, it);
+    return ret;
 }
 
 [[nodiscard]] inline std::vector<std::string> SplitString(std::string_view str, char sep)
