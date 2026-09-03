@@ -6,3 +6,7 @@
 **Vulnerability:** Optimistic block reconstruction was ignoring READ_STATUS_INVALID errors rather than penalizing the peer, creating a fail-open issue and potential DoS vector.
 **Learning:** Failing to handle explicit error enums securely leads to peers being able to send bogus data without punishment.
 **Prevention:** Use an explicit `else` branch for non-OK, non-FAILED statuses to catch unrecognized enum values and explicitly invoke `Misbehaving()`.
+## 2024-05-24 - SQL Injection Risk in SQLite PRAGMA execution
+**Vulnerability:** In `src/wallet/sqlite.cpp`, the `SetPragma` and `ReadPragmaInteger` functions constructed SQL PRAGMA statements by formatting strings using `strprintf("PRAGMA %s = %s", key, value)` and `strprintf("PRAGMA %s", key)`.
+**Learning:** SQLite PRAGMA statements do not support the standard '?' parameter binding for prepared statements. Consequently, `sqlite3_bind_*` cannot be used to safely bind parameters in PRAGMA queries.
+**Prevention:** To construct PRAGMA statements safely without risking SQL injection, use `sqlite3_mprintf` with the `%w` format specifier for identifiers (which safely escapes them) and `%Q` for values (which escapes and quotes them). The resulting pointer must be freed with `sqlite3_free`.
