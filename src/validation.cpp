@@ -2156,7 +2156,7 @@ bool FatalError(Notifications& notifications, BlockValidationState& state, const
  * @param out The out point that corresponds to the tx input.
  * @return A DisconnectResult as an int
  */
-int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
+DisconnectResult ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
 {
     bool fClean = true;
 
@@ -2243,7 +2243,7 @@ DisconnectResult Chainstate::DisconnectBlock(const CBlock& block, const CBlockIn
             for (unsigned int j = tx.vin.size(); j > 0;) {
                 --j;
                 const COutPoint& out = tx.vin[j].prevout;
-                int res = ApplyTxInUndo(std::move(txundo.vprevout[j]), view, out);
+                DisconnectResult res = ApplyTxInUndo(std::move(txundo.vprevout[j]), view, out);
                 if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN) return DISCONNECT_FAILED;
                 fClean = fClean && res != DISCONNECT_UNCLEAN;
             }
@@ -4712,15 +4712,14 @@ VerifyDBResult CVerifyDB::VerifyDB(
             if (curr_coins_usage <= chainstate.m_coinstip_cache_size_bytes) {
                 assert(coins.GetBestBlock() == pindex->GetBlockHash());
                 DisconnectResult res = chainstate.DisconnectBlock(block, pindex, coins);
-                if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN) {
-                    LogError("Verification error: irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-                    return VerifyDBResult::CORRUPTED_BLOCK_DB;
-                }
                 if (res == DISCONNECT_UNCLEAN) {
                     nGoodTransactions = 0;
                     pindexFailure = pindex;
-                } else {
+                } else if (res == DISCONNECT_OK) {
                     nGoodTransactions += block.vtx.size();
+                } else {
+                    LogError("Verification error: irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+                    return VerifyDBResult::CORRUPTED_BLOCK_DB;
                 }
             } else {
                 skipped_l3_checks = true;
