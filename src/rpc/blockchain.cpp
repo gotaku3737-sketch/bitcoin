@@ -3303,7 +3303,7 @@ UniValue CreateRolledBackUTXOSnapshot(
         }
 
         WITH_LOCK(::cs_main, res = chainstate.DisconnectBlock(block, block_index, rollback_cache));
-        if (res == DISCONNECT_FAILED) {
+        if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN) {
             throw JSONRPCError(RPC_INTERNAL_ERROR,
                 strprintf("Failed to roll back block at height %d", block_index->nHeight));
         }
