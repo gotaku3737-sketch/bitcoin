@@ -9,3 +9,7 @@
 ## 2026-08-30 - Optimize character searches using precomputed boolean arrays
 **Learning:** In C++ core code, when filtering or validating strings against fixed character sets in hot paths, replacing linear string searches (like `std::string::find`) with a precomputed static boolean array lookup (e.g., `std::array<bool, 256>`) converts O(M) lookups to O(1) and significantly improves performance.
 **Action:** Use a precomputed static boolean array lookup for string character searches against fixed character sets. Ensure characters are cast to `unsigned char` before indexing to prevent out-of-bounds access for negative values. Provide a specialized overload or conditional branch for single-character lookups (e.g., direct equality check `*it == sep`) to avoid the array initialization overhead for trivial cases.
+
+## 2024-09-04 - Optimize C++ string construction in URL encoding
+**Learning:** Using `+=` to append characters one by one to a `std::string` incurs noticeable overhead due to continuous size checks and potential reallocations, even when `reserve()` is called. Furthermore, appending hex characters sequentially requires two store operations.
+**Action:** Pre-allocate the upper-bound size using `resize()`, build the string using direct index assignment (e.g., `str[pos++] = c`), and then `resize()` down to the final length. Use a precomputed `constexpr std::array<uint16_t, 256>` packed with native endianness to write two hex chars via a single 16-bit scalar store.
