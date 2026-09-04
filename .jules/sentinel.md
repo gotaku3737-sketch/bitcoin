@@ -6,3 +6,7 @@
 **Vulnerability:** Optimistic block reconstruction was ignoring READ_STATUS_INVALID errors rather than penalizing the peer, creating a fail-open issue and potential DoS vector.
 **Learning:** Failing to handle explicit error enums securely leads to peers being able to send bogus data without punishment.
 **Prevention:** Use an explicit `else` branch for non-OK, non-FAILED statuses to catch unrecognized enum values and explicitly invoke `Misbehaving()`.
+## 2024-05-18 - [Fix fail-open enum checking in block disconnect]
+**Vulnerability:** Explicit equality checks for enum error conditions (e.g., `status == DISCONNECT_FAILED`) caused a fail-open vulnerability if the enum expanded over time or received an unrecognized value.
+**Learning:** Failing to handle explicit error enums securely leads to corrupt block databases or unhandled state inconsistencies slipping through undetected.
+**Prevention:** Use an explicit `else` branch for non-OK, non-UNCLEAN statuses to catch unrecognized enum values, explicitly triggering the failure mode (e.g. `VerifyDBResult::CORRUPTED_BLOCK_DB`).
