@@ -10,3 +10,7 @@
 **Vulnerability:** In `src/wallet/sqlite.cpp`, the `SetPragma` and `ReadPragmaInteger` functions constructed SQL PRAGMA statements by formatting strings using `strprintf("PRAGMA %s = %s", key, value)` and `strprintf("PRAGMA %s", key)`.
 **Learning:** SQLite PRAGMA statements do not support the standard '?' parameter binding for prepared statements. Consequently, `sqlite3_bind_*` cannot be used to safely bind parameters in PRAGMA queries.
 **Prevention:** To construct PRAGMA statements safely without risking SQL injection, use `sqlite3_mprintf` with the `%w` format specifier for identifiers (which safely escapes them) and `%Q` for values (which escapes and quotes them). The resulting pointer must be freed with `sqlite3_free`.
+## 2024-09-04 - Prevent Fail-Open Vulnerabilities in DisconnectResult Enum Checks
+**Vulnerability:** Explicit equality checks for `res == DISCONNECT_FAILED` enum error conditions caused a fail-open vulnerability if the enum expanded over time or received an unrecognized value.
+**Learning:** Checking for specific failure modes rather than negating the success mode allows new, unexpected status codes to slip through and be treated as success or ignored.
+**Prevention:** Use a negated check against the success/expected states (e.g., `if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN)`) to securely route all unrecognized or new failure modes to the failure path.
