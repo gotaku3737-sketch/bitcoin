@@ -14,3 +14,7 @@
 **Vulnerability:** Explicit equality checks for `res == DISCONNECT_FAILED` enum error conditions caused a fail-open vulnerability if the enum expanded over time or received an unrecognized value.
 **Learning:** Checking for specific failure modes rather than negating the success mode allows new, unexpected status codes to slip through and be treated as success or ignored.
 **Prevention:** Use a negated check against the success/expected states (e.g., `if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN)`) to securely route all unrecognized or new failure modes to the failure path.
+## 2024-09-08 - Use GetStrongRandBytes for long-term secure random generation
+**Vulnerability:** In `src/rpc/request.cpp`, the `GenerateAuthCookie` function used `GetRandBytes(rand_pwd)` to generate a 32-byte authentication cookie for the RPC interface. This authentication cookie is essentially a long-term password.
+**Learning:** The `GetRandBytes` function provides fast, non-blocking random byte generation suitable for transient use cases like network nonces or short-lived cryptographic operations. However, for long-term secrets like an RPC authentication cookie, it is crucial to use cryptographically secure random bytes seeded properly from the OS.
+**Prevention:** Use `GetStrongRandBytes` instead of `GetRandBytes` when generating long-term cryptographically secure random values (such as authentication cookies or keys) to ensure proper OS-level entropy.
