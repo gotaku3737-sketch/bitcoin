@@ -14,3 +14,7 @@
 **Vulnerability:** Explicit equality checks for `res == DISCONNECT_FAILED` enum error conditions caused a fail-open vulnerability if the enum expanded over time or received an unrecognized value.
 **Learning:** Checking for specific failure modes rather than negating the success mode allows new, unexpected status codes to slip through and be treated as success or ignored.
 **Prevention:** Use a negated check against the success/expected states (e.g., `if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN)`) to securely route all unrecognized or new failure modes to the failure path.
+## 2026-09-10 - Weak RNG in Authentication Cookie
+**Vulnerability:** The RPC authentication cookie generation uses the fast PRNG `GetRandBytes` instead of the cryptographically secure OS-level entropy source.
+**Learning:** While `GetRandBytes` is suitable for transient network nonces, long-term secrets like authentication cookies require strong OS-level entropy to prevent brute-force or state-guessing attacks.
+**Prevention:** Always use `GetStrongRandBytes()` for cryptographically secure, long-term random values like keys, passwords, and authentication cookies.
