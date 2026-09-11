@@ -14,3 +14,7 @@
 **Vulnerability:** Explicit equality checks for `res == DISCONNECT_FAILED` enum error conditions caused a fail-open vulnerability if the enum expanded over time or received an unrecognized value.
 **Learning:** Checking for specific failure modes rather than negating the success mode allows new, unexpected status codes to slip through and be treated as success or ignored.
 **Prevention:** Use a negated check against the success/expected states (e.g., `if (res != DISCONNECT_OK && res != DISCONNECT_UNCLEAN)`) to securely route all unrecognized or new failure modes to the failure path.
+## 2024-05-15 - Use strong randomness for long-term secrets
+**Vulnerability:** RPC authentication cookies were generated using `GetRandBytes()`.
+**Learning:** `GetRandBytes()` is a fast CSPRNG, suitable for transient nonces, but insufficient for cryptographically secure long-term secrets like authentication cookies.
+**Prevention:** Always use `GetStrongRandBytes()` when generating long-term cryptographically secure random values (such as auth cookies or keys) to ensure proper OS-level entropy.
