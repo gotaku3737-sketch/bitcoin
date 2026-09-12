@@ -7,6 +7,7 @@ import unittest
 from enum import Enum
 
 CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+CHARSET_DICT = {c: i for i, c in enumerate(CHARSET)}
 BECH32_CONST = 1
 BECH32M_CONST = 0x2bc830a3
 
@@ -66,10 +67,10 @@ def bech32_decode(bech):
     pos = bech.rfind('1')
     if pos < 1 or pos + 7 > len(bech) or len(bech) > 90:
         return (None, None, None)
-    if not all(x in CHARSET for x in bech[pos+1:]):
+    if not all(x in CHARSET_DICT for x in bech[pos+1:]):
         return (None, None, None)
     hrp = bech[:pos]
-    data = [CHARSET.find(x) for x in bech[pos+1:]]
+    data = [CHARSET_DICT[x] for x in bech[pos+1:]]
     encoding = bech32_verify_checksum(hrp, data)
     if encoding is None:
         return (None, None, None)
