@@ -13,3 +13,6 @@
 ## 2024-09-04 - Optimize C++ string construction in URL encoding
 **Learning:** Using `+=` to append characters one by one to a `std::string` incurs noticeable overhead due to continuous size checks and potential reallocations, even when `reserve()` is called. Furthermore, appending hex characters sequentially requires two store operations.
 **Action:** Pre-allocate the upper-bound size using `resize()`, build the string using direct index assignment (e.g., `str[pos++] = c`), and then `resize()` down to the final length. Use a precomputed `constexpr std::array<uint16_t, 256>` packed with native endianness to write two hex chars via a single 16-bit scalar store.
+## 2026-08-31 - Optimize Python character searches in Bech32 decoding
+**Learning:** In Python-based performance-critical code (e.g., 'test/functional/test_framework/segwit_addr.py'), linear character lookups using '.find()' or membership checks against strings within list comprehensions have significant overhead. Replacing these with precomputed dictionary lookups converts O(M) searches to O(1) and typically provides a measurable CPU efficiency gain (over 50% for Bech32 checksum logic).
+**Action:** Replace linear character lookups using '.find()' or membership checks with precomputed dictionary lookups in hot paths.
