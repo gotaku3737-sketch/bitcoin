@@ -372,16 +372,16 @@ bool ParseFixedPoint(std::string_view val, int decimals, int64_t *amount_out)
 std::string ToLower(std::string_view str)
 {
     std::string r;
-    r.reserve(str.size());
-    for (auto ch : str) r += ToLower(ch);
+    r.resize(str.size());
+    for (size_t i = 0; i < str.size(); ++i) r[i] = ToLower(str[i]);
     return r;
 }
 
 std::string ToUpper(std::string_view str)
 {
     std::string r;
-    r.reserve(str.size());
-    for (auto ch : str) r += ToUpper(ch);
+    r.resize(str.size());
+    for (size_t i = 0; i < str.size(); ++i) r[i] = ToUpper(str[i]);
     return r;
 }
 
