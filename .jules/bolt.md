@@ -20,3 +20,6 @@
 ## 2024-09-13 - Optimize string conversion in C++
 **Learning:** Using `+=` to append characters one by one to a `std::string` incurs noticeable overhead due to continuous size checks and potential reallocations, even when `reserve()` is called. This was observed in `ToLower` and `ToUpper`.
 **Action:** Pre-allocate the upper-bound size using `resize()` and build the string using direct index assignment (e.g., `str[pos++] = c`). This is over 2.5x faster in tight loops.
+## 2026-09-14 - Optimize character scanning
+**Learning:** Manual byte-by-byte loops in C++ string functions can be ~50x slower than using standard library methods like `std::string_view::find()`, which are typically optimized using vectorized CPU instructions like `memchr`.
+**Action:** Replace manual loops over strings with standard library search functions like `find` or `find_first_not_of` in hot paths.
