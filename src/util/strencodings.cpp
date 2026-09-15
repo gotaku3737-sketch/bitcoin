@@ -373,7 +373,8 @@ std::string ToLower(std::string_view str)
 {
     std::string r;
     r.resize(str.size());
-    for (size_t i = 0; i < str.size(); ++i) r[i] = ToLower(str[i]);
+    char* p = r.data();
+    for (size_t i = 0; i < str.size(); ++i) p[i] = ToLower(str[i]);
     return r;
 }
 
@@ -381,7 +382,8 @@ std::string ToUpper(std::string_view str)
 {
     std::string r;
     r.resize(str.size());
-    for (size_t i = 0; i < str.size(); ++i) r[i] = ToUpper(str[i]);
+    char* p = r.data();
+    for (size_t i = 0; i < str.size(); ++i) p[i] = ToUpper(str[i]);
     return r;
 }
 
