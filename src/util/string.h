@@ -194,13 +194,53 @@ std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep
     return Split<std::string>(str, separators);
 }
 
+namespace detail {
+constexpr std::array<bool, 256> BuildTrimStringViewDefaultPattern() {
+    std::array<bool, 256> arr{};
+    const char* pat = " \f\n\r\t\v";
+    for (int i = 0; pat[i] != '\0'; ++i) {
+        arr[static_cast<unsigned char>(pat[i])] = true;
+    }
+    return arr;
+}
+} // namespace detail
+
 [[nodiscard]] inline std::string_view TrimStringView(std::string_view str, std::string_view pattern = " \f\n\r\t\v")
 {
-    std::string::size_type front = str.find_first_not_of(pattern);
-    if (front == std::string::npos) {
-        return {};
+    if (str.empty()) return {};
+
+    if (pattern.size() == 1) {
+        char sep = pattern[0];
+        size_t front = 0;
+        while (front < str.size() && str[front] == sep) ++front;
+        if (front == str.size()) return {};
+
+        size_t end = str.size() - 1;
+        while (end > front && str[end] == sep) --end;
+        return str.substr(front, end - front + 1);
     }
-    std::string::size_type end = str.find_last_not_of(pattern);
+
+    if (pattern == " \f\n\r\t\v") {
+        constexpr auto is_pat = detail::BuildTrimStringViewDefaultPattern();
+
+        size_t front = 0;
+        while (front < str.size() && is_pat[static_cast<unsigned char>(str[front])]) ++front;
+        if (front == str.size()) return {};
+
+        size_t end = str.size() - 1;
+        while (end > front && is_pat[static_cast<unsigned char>(str[end])]) --end;
+        return str.substr(front, end - front + 1);
+    }
+
+    std::array<bool, 256> is_pat{};
+    for (char c : pattern) is_pat[static_cast<unsigned char>(c)] = true;
+
+    size_t front = 0;
+    while (front < str.size() && is_pat[static_cast<unsigned char>(str[front])]) ++front;
+    if (front == str.size()) return {};
+
+    size_t end = str.size() - 1;
+    while (end > front && is_pat[static_cast<unsigned char>(str[end])]) --end;
     return str.substr(front, end - front + 1);
 }
 

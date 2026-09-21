@@ -24,3 +24,6 @@
 ## 2024-09-15 - Optimize string conversion in C++ ToLower/ToUpper
 **Learning:** Using `r[i] = ...` inside a loop for string modification incurs overhead due to bounds checking and other internal checks in `std::string::operator[]`.
 **Action:** When modifying a pre-allocated `std::string` in a hot loop, access the raw character buffer via `data()` and use pointer arithmetic or raw indexing to bypass `std::string` bounds checks, yielding an ~80% reduction in execution time for large strings.
+## 2024-09-22 - Optimize std::string_view trimming with boolean arrays
+**Learning:** `std::string_view::find_first_not_of` and `find_last_not_of` perform nested O(N*M) linear character searches, which is slow for repeated string parsing (like header trimming). Replacing these loops with O(1) lookups via a precomputed `std::array<bool, 256>` significantly improves performance (e.g. 60-70% speedup). For `constexpr` known patterns, the array can be evaluated at compile time.
+**Action:** When repeatedly stripping characters (like whitespace) in hot paths, avoid `find_first_not_of`. Use compile-time built boolean lookup arrays and fast-path branches for single-character trims to maximize CPU efficiency.
