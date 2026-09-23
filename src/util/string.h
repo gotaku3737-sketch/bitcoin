@@ -196,6 +196,32 @@ std::vector<T> Split(const std::span<const char>& sp, char sep, bool include_sep
 
 [[nodiscard]] inline std::string_view TrimStringView(std::string_view str, std::string_view pattern = " \f\n\r\t\v")
 {
+    constexpr std::string_view def_pattern = " \f\n\r\t\v";
+
+    // Performance optimization: fast path for the common default whitespace pattern.
+    // Replaces O(N*M) find_first_not_of searches with an O(1) static array lookup.
+    if (pattern == def_pattern) {
+        static constexpr std::array<bool, 256> def_pattern_arr = []() {
+            std::array<bool, 256> arr{};
+            for (char c : " \f\n\r\t\v") arr[static_cast<unsigned char>(c)] = true;
+            arr[0] = false; // " \f\n\r\t\v" string literal includes null terminator
+            return arr;
+        }();
+
+        std::string::size_type front = 0;
+        while (front < str.size() && def_pattern_arr[static_cast<unsigned char>(str[front])]) {
+            ++front;
+        }
+        if (front == str.size()) {
+            return {};
+        }
+        std::string::size_type end = str.size() - 1;
+        while (end > front && def_pattern_arr[static_cast<unsigned char>(str[end])]) {
+            --end;
+        }
+        return str.substr(front, end - front + 1);
+    }
+
     std::string::size_type front = str.find_first_not_of(pattern);
     if (front == std::string::npos) {
         return {};
