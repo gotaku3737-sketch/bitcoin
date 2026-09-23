@@ -28,3 +28,6 @@
 ## 2024-05-24 - Fast path for default trim pattern
 **Learning:** `std::string_view::find_first_not_of` and `find_last_not_of` perform nested O(N*M) linear searches. By providing a fast path for the common default whitespace pattern using a `constexpr` precomputed `std::array<bool, 256>`, we can reduce overhead and speed up string trimming significantly (over 50% faster in microbenchmarks).
 **Action:** Add a fast-path with a `constexpr` boolean array lookup for default arguments in hot path utilities to avoid unnecessary string matching overhead.
+## 2024-09-23 - Avoid O(N*M) substring searches in hot paths
+**Learning:** `std::string_view::find_first_not_of` and `find_last_not_of` perform nested O(N*M) linear searches.
+**Action:** Replace them with O(1) lookups using a precomputed `std::array<bool, 256>`, and ensure to provide a specialized conditional branch for single-character lookups to avoid array initialization overhead.
