@@ -136,20 +136,29 @@ std::string DescriptorChecksum(const std::span<const char>& span)
      * As a result, within-group-of-32 errors count as 1 symbol, as do cross-group errors that don't affect
      * the position within the groups.
      */
-    static const std::string INPUT_CHARSET =
-        "0123456789()[],'/*abcdefgh@:$%{}"
-        "IJKLMNOPQRSTUVWXYZ&+-.;<=>?!^_|~"
-        "ijklmnopqrstuvwxyzABCDEFGH`#\"\\ ";
-
     /** The character set for the checksum itself (same as bech32). */
     static const std::string CHECKSUM_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+
+    static constexpr std::array<int8_t, 128> INPUT_CHARSET_MAP = []() {
+        std::array<int8_t, 128> map{};
+        map.fill(-1);
+        const char charset[] =
+            "0123456789()[],'/*abcdefgh@:$%{}"
+            "IJKLMNOPQRSTUVWXYZ&+-.;<=>?!^_|~"
+            "ijklmnopqrstuvwxyzABCDEFGH`#\"\\ ";
+        for (int i = 0; charset[i] != '\0'; ++i) {
+            map[static_cast<uint8_t>(charset[i])] = i;
+        }
+        return map;
+    }();
 
     uint64_t c = 1;
     int cls = 0;
     int clscount = 0;
     for (auto ch : span) {
-        auto pos = INPUT_CHARSET.find(ch);
-        if (pos == std::string::npos) return "";
+        if (static_cast<uint8_t>(ch) >= 128) return "";
+        auto pos = INPUT_CHARSET_MAP[static_cast<uint8_t>(ch)];
+        if (pos == -1) return "";
         c = PolyMod(c, pos & 31); // Emit a symbol for the position inside the group, for every character.
         cls = cls * 3 + (pos >> 5); // Accumulate the group numbers
         if (++clscount == 3) {

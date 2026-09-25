@@ -31,3 +31,6 @@
 ## 2024-09-23 - Avoid O(N*M) substring searches in hot paths
 **Learning:** `std::string_view::find_first_not_of` and `find_last_not_of` perform nested O(N*M) linear searches.
 **Action:** Replace them with O(1) lookups using a precomputed `std::array<bool, 256>`, and ensure to provide a specialized conditional branch for single-character lookups to avoid array initialization overhead.
+## 2026-09-25 - Optimize character lookups using static array
+**Learning:** In C++ hot paths, using `std::string::find` or similar linear searches for character validation and mapping can become a significant performance bottleneck. Replacing O(M) linear searches with precomputed static `std::array<int8_t, N>` lookup tables changes the time complexity to O(1) and substantially improves execution speed.
+**Action:** Use static array mapping for character validation/lookups in critical parsing and checksum code.
