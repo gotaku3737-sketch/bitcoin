@@ -37,6 +37,7 @@ ADDRESS_BCRT1_UNSPENDABLE_DESCRIPTOR = 'addr(bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
 ADDRESS_BCRT1_P2WSH_OP_TRUE = 'bcrt1qft5p2uhsdcdc3l2ua4ap5qqfg4pjaqlp250x7us7a8qqhrxrxfsqseac85'
 
 b58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+B58CHARS_DICT = {c: i for i, c in enumerate(b58chars)}
 
 
 def create_deterministic_address_bcrt1_p2tr_op_true(explicit_internal_key=None):
@@ -80,8 +81,9 @@ def base58_to_byte(s):
     n = 0
     for c in s:
         n *= 58
-        assert c in b58chars
-        digit = b58chars.index(c)
+        # ⚡ Bolt: Optimize O(N) index lookup to O(1) dictionary lookup
+        assert c in B58CHARS_DICT
+        digit = B58CHARS_DICT[c]
         n += digit
     h = '%x' % n
     if len(h) % 2:
