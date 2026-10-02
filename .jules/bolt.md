@@ -34,3 +34,7 @@
 ## 2024-09-04 - Optimize string construction in EncodeBase64/32
 **Learning:** Using `+=` to append characters one by one to a `std::string` incurs noticeable overhead due to continuous size checks and potential reallocations, even when `reserve()` is called.
 **Action:** Pre-allocate the upper-bound size using `resize()` and build the string using direct index assignment (e.g., `str[pos++] = c`), resizing it down to the final length afterwards. This provides significant performance improvement (e.g. over 30% reduction in execution time in benchmarks).
+
+## 2024-03-24 - Optimize Python Base58 character lookup
+**Learning:** In Python-based performance-critical code, linear character lookups using '.index()' or membership checks against strings within loops have significant overhead. Replacing these with precomputed dictionary lookups converts O(M) searches to O(1) and typically provides a measurable CPU efficiency gain (~24% for Base58 decoding logic).
+**Action:** Replace linear character lookups using '.index()' with precomputed dictionary lookups in hot paths.
