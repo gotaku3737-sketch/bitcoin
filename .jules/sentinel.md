@@ -18,3 +18,7 @@
 **Vulnerability:** RPC authentication cookies were generated using `GetRandBytes()`.
 **Learning:** `GetRandBytes()` is a fast CSPRNG, suitable for transient nonces, but insufficient for cryptographically secure long-term secrets like authentication cookies.
 **Prevention:** Always use `GetStrongRandBytes()` when generating long-term cryptographically secure random values (such as auth cookies or keys) to ensure proper OS-level entropy.
+## 2026-11-06 - Improper RNG Selection for Cryptographic Values
+**Vulnerability:** The secp256k1 context blinding seed was initialized using the fast CSPRNG (GetRandBytes) instead of the strong OS-level RNG (GetStrongRandBytes), while transient MuSig2 nonces incorrectly drained OS entropy by using GetStrongRandBytes.
+**Learning:** In Bitcoin Core, GetStrongRandBytes must be strictly reserved for long-term secrets (like keys and context blinding seeds) to guarantee OS-level entropy, while GetRandBytes is correct for transient values (like nonces) to prevent entropy exhaustion (DoS).
+**Prevention:** Always evaluate the lifetime and security requirements of random values. Use GetStrongRandBytes for long-lived cryptographic material and GetRandBytes for short-lived session values.
