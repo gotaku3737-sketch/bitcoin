@@ -144,7 +144,7 @@ std::vector<uint8_t> CreateMuSig2Nonce(MuSig2SecNonce& secnonce, const uint256& 
 
     // Generate randomness for nonce
     uint256 rand;
-    GetStrongRandBytes(rand);
+    GetRandBytes(rand);
 
     // Generate nonce
     secp256k1_musig_pubnonce pubnonce;
