@@ -18,3 +18,7 @@
 **Vulnerability:** RPC authentication cookies were generated using `GetRandBytes()`.
 **Learning:** `GetRandBytes()` is a fast CSPRNG, suitable for transient nonces, but insufficient for cryptographically secure long-term secrets like authentication cookies.
 **Prevention:** Always use `GetStrongRandBytes()` when generating long-term cryptographically secure random values (such as auth cookies or keys) to ensure proper OS-level entropy.
+## 2026-11-09 - Command Injection Risk on Windows via cmd.exe single quotes
+**Vulnerability:** Shell-executed commands interpolating string parameters wrapped in single quotes (e.g., `'my status'`) on Windows are insecure because `cmd.exe` treats single quotes as literal characters, not as string delimiters, leading to syntax errors or parameter injection.
+**Learning:** The assumption that single quotes provide safe shell grouping on all OSes is false for Windows `cmd.exe`.
+**Prevention:** On POSIX, use `ShellEscape()` to safely escape arguments. On Windows, use double quotes (`"`) to group arguments for `cmd.exe`.
